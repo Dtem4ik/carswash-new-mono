@@ -109,7 +109,7 @@ not break the local `pnpm build:web` / api gate.
 
 All must hold:
 
-1. `carswash-new-mono` exists on GitHub, **private**, with the description,
+1. `carswash-new-mono` exists on GitHub, **public**, with the description,
    topics, labels, and `main` as default + branch protection active.
 2. `main` has the full Conventional-Commit history; `git push` is clean; the CI
    workflow runs on GitHub and is green.
