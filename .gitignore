@@ -1,0 +1,13 @@
+node_modules/
+.venv/
+__pycache__/
+.env
+.env.local
+*.local
+.DS_Store
+dist/
+.next/
+.turbo/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
