@@ -267,7 +267,7 @@ not a rewrite.
 React Hook Form + Zod, next-intl, Supabase JS (auth + realtime only), generated
 OpenAPI client, Recharts/Tremor for charts.
 
-**API** — Python 3.12+, FastAPI, Uvicorn, SQLAlchemy 2.0 (async) + Alembic,
+**API** — Python 3.13+, FastAPI, Uvicorn, SQLAlchemy 2.0 (async) + Alembic,
 Pydantic v2 + pydantic-settings, pytest + httpx.
 
 **Shared** — `packages/shared`: generated TS types from OpenAPI + shared
@@ -282,7 +282,7 @@ commitlint (Conventional Commits), GitHub Actions (CI).
 ```
 carswash/
   apps/
-    web/        # Next 15
+    web/        # Next 16
     api/        # FastAPI
     # mobile/   # Expo            (post-MVP)
     # ml/       # FastAPI + CV    (post-MVP)

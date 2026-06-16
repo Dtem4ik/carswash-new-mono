@@ -38,7 +38,7 @@ Python project, Biome, Ruff+mypy, Lefthook + commitlint, GitHub Actions CI,
 
 **Deliverables.**
 - `mise.toml` pinning Node, pnpm, Python, uv.
-- `pnpm-workspace.yaml`; `apps/web` (Next 15 + TS + Tailwind v4 + shadcn init);
+- `pnpm-workspace.yaml`; `apps/web` (Next 16 + TS + Tailwind v4 + shadcn init);
   `packages/shared` stub.
 - `apps/api` (`uv` project): FastAPI app with `GET /health` and OpenAPI on.
 - Biome config; Ruff + mypy config; Lefthook config; commitlint config.
@@ -259,7 +259,7 @@ feat(web): add boxes and washers/roles administration
 ```
 
 **AI prompt.**
-> Execute Phase 4. Build the operator web app on Next 15. Start with the i18n
+> Execute Phase 4. Build the operator web app on Next 16. Start with the i18n
 > foundation (next-intl, en/ru/kk, code→text mapping, Intl money/date using org
 > currency + car-wash timezone). Build the realtime boxes board (Supabase
 > Realtime), order intake, order list/detail, shift control, and admin screens.

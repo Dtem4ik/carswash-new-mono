@@ -29,7 +29,7 @@ ask before proceeding.
 
 ## Step 2 — Objective
 
-Produce a clean **polyglot monorepo** where the `web` (Next 15) and `api`
+Produce a clean **polyglot monorepo** where the `web` (Next 16) and `api`
 (FastAPI) apps each start locally and pass all quality gates, with conventions
 and CI wired **before** any feature work.
 
@@ -49,8 +49,8 @@ and CI wired **before** any feature work.
 
 ## Step 3 — Deliverables and exact setup
 
-**Tooling versions — `mise.toml`** at repo root pinning: Node 22 (LTS), pnpm
-(latest 10.x), Python 3.12, uv (latest). The documented dev flow must work after
+**Tooling versions — `mise.toml`** at repo root pinning: Node 24 (LTS), pnpm
+(latest 11.x), Python 3.13, uv (latest). The documented dev flow must work after
 `mise install`.
 
 **Monorepo (JS side) — pnpm workspaces.**
@@ -59,7 +59,7 @@ and CI wired **before** any feature work.
 - Root `package.json` with dev tooling: `@commitlint/cli`,
   `@commitlint/config-conventional`, `lefthook`, and convenience scripts.
 
-**`apps/web` — Next 15.**
+**`apps/web` — Next 16.**
 - Scaffold with `create-next-app@latest`: App Router, TypeScript, Tailwind CSS
   v4, `src` dir, import alias `@/*`, pnpm. Disable the default ESLint (we use
   Biome). Remove any ESLint/Prettier artifacts it adds.

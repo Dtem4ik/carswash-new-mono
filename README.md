@@ -25,7 +25,7 @@ cross-location analytics for network owners.
 
 - **Web:** Next 16 (App Router, TS), Tailwind v4 + shadcn/ui, TanStack Query,
   React Hook Form + Zod, next-intl.
-- **API:** Python 3.12+, FastAPI, SQLAlchemy 2.0 (async) + Alembic, Pydantic v2.
+- **API:** Python 3.13+, FastAPI, SQLAlchemy 2.0 (async) + Alembic, Pydantic v2.
 - **Data:** Supabase Postgres (Auth + Realtime + RLS).
 - **Tooling:** mise, pnpm workspaces, uv, Biome, Ruff + mypy, Lefthook,
   commitlint, GitHub Actions.
@@ -34,7 +34,7 @@ cross-location analytics for network owners.
 
 ```
 apps/
-  web/        # Next 15 frontend
+  web/        # Next 16 frontend
   api/        # FastAPI backend
   # mobile/   # Expo washer app      (post-MVP)
   # ml/       # FastAPI + CV (ANPR)  (post-MVP)
@@ -54,7 +54,7 @@ docs/         # architecture, roadmap, conventions
 ### Prerequisites
 
 Install [mise](https://mise.jdx.dev/), which pins and provisions every tool
-(Node 22, pnpm 10.x, Python 3.12, uv) from `mise.toml`:
+(Node 24, pnpm 11, Python 3.13, uv) from `mise.toml`:
 
 ```bash
 curl https://mise.run | sh        # one-time mise install
