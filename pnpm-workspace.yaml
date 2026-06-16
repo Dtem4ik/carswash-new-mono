@@ -2,3 +2,8 @@
 packages:
   - apps/web
   - packages/shared
+
+# Build scripts pnpm should not run automatically (require explicit approval).
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
