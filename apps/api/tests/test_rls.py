@@ -77,15 +77,16 @@ def test_rls_orders_tenant_isolation() -> None:
             )
             conn.execute(
                 sa.text(
-                    "INSERT INTO organizations (id, name, currency, default_locale)"
+                    "INSERT INTO organizations (id, name, default_currency, default_locale)"
                     " VALUES (:id, 'RLS Org', 'KZT', 'ru')"
                 ),
                 {"id": ids["org"]},
             )
             conn.execute(
                 sa.text(
-                    "INSERT INTO car_washes (id, organization_id, name, timezone) VALUES"
-                    " (:a, :org, 'A', 'Asia/Almaty'), (:b, :org, 'B', 'Asia/Aqtobe')"
+                    "INSERT INTO car_washes (id, organization_id, name, timezone, currency)"
+                    " VALUES (:a, :org, 'A', 'Asia/Almaty', 'KZT'),"
+                    " (:b, :org, 'B', 'Asia/Aqtobe', 'KZT')"
                 ),
                 {"a": ids["cwA"], "b": ids["cwB"], "org": ids["org"]},
             )
@@ -129,8 +130,11 @@ def test_rls_orders_tenant_isolation() -> None:
                 {"id": ids["client"], "org": ids["org"]},
             )
             conn.execute(
-                sa.text("INSERT INTO cars (id, plate, car_type_id) VALUES (:id, 'PLATE', :ct)"),
-                {"id": ids["car"], "ct": ids["ct"]},
+                sa.text(
+                    "INSERT INTO cars (id, organization_id, plate, car_type_id)"
+                    " VALUES (:id, :org, 'PLATE', :ct)"
+                ),
+                {"id": ids["car"], "org": ids["org"], "ct": ids["ct"]},
             )
             conn.execute(
                 sa.text(
@@ -141,10 +145,12 @@ def test_rls_orders_tenant_isolation() -> None:
             )
             conn.execute(
                 sa.text(
-                    "INSERT INTO orders (id, car_wash_id, box_id, shift_id, client_car_id, status,"
-                    " price_amount_minor, currency, created_by) VALUES"
-                    " (:oa, :cwA, :boxA, :shiftA, :ccA, 'queued'::order_status, 200000, 'KZT', :o),"
-                    " (:ob, :cwB, :boxB, :shiftB, :ccB, 'queued'::order_status, 300000, 'KZT', :o)"
+                    "INSERT INTO orders (id, car_wash_id, box_id, shift_id, client_car_id,"
+                    " car_type_id, status, price_amount_minor, currency, created_by) VALUES"
+                    " (:oa, :cwA, :boxA, :shiftA, :ccA, :ct, 'queued'::order_status,"
+                    " 200000, 'KZT', :o),"
+                    " (:ob, :cwB, :boxB, :shiftB, :ccB, :ct, 'queued'::order_status,"
+                    " 300000, 'KZT', :o)"
                 ),
                 {
                     "oa": ids["orderA"],
@@ -157,6 +163,7 @@ def test_rls_orders_tenant_isolation() -> None:
                     "shiftB": ids["shiftB"],
                     "ccA": ids["ccA"],
                     "ccB": ids["ccB"],
+                    "ct": ids["ct"],
                     "o": ids["owner"],
                 },
             )
