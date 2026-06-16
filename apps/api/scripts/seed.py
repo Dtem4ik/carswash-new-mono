@@ -71,7 +71,7 @@ def build_rows() -> dict[Table, list[dict[str, Any]]]:
         {
             "id": org_id,
             "name": "Shiny Wash Network",
-            "currency": "KZT",
+            "default_currency": "KZT",
             "default_locale": "ru",
             "plan": "free",
         }
@@ -82,6 +82,7 @@ def build_rows() -> dict[Table, list[dict[str, Any]]]:
             "organization_id": org_id,
             "name": "Almaty Central",
             "timezone": "Asia/Almaty",
+            "currency": "KZT",
             "address": "Almaty",
             "is_active": True,
         },
@@ -90,6 +91,7 @@ def build_rows() -> dict[Table, list[dict[str, Any]]]:
             "organization_id": org_id,
             "name": "Aqtobe West",
             "timezone": "Asia/Aqtobe",
+            "currency": "KZT",
             "address": "Aqtobe",
             "is_active": True,
         },
