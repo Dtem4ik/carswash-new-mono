@@ -1,0 +1,10 @@
+# Tool versions for the CarsWash monorepo.
+# Run `mise install` to provision the full local dev toolchain.
+#
+# Env is loaded by each app itself (Next.js reads apps/web/.env.local;
+# pydantic-settings reads apps/api/.env) — see the .env.example files.
+[tools]
+node = "22"        # LTS line; web (Next 15) and JS tooling
+pnpm = "10"        # latest 10.x; JS workspace package manager
+python = "3.12"    # api (FastAPI)
+uv = "latest"      # Python project & dependency manager

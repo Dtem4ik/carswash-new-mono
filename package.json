@@ -1,0 +1,16 @@
+{
+  "name": "carswash",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Multi-tenant SaaS for car-wash networks — polyglot monorepo (Next 15 web + FastAPI api).",
+  "packageManager": "pnpm@10.34.3",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "uv --project apps/api run uvicorn app.main:app --reload",
+    "build:web": "pnpm --filter web build",
+    "test:api": "uv --project apps/api run pytest"
+  }
+}

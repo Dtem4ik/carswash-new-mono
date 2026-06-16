@@ -1,0 +1,4 @@
+# JS/TS workspace members. The Python app (apps/api) is managed by uv, not pnpm.
+packages:
+  - apps/web
+  - packages/shared
