@@ -1,0 +1,1 @@
+"""CarsWash API application package."""
