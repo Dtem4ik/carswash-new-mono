@@ -38,7 +38,7 @@ These are non-negotiable. Every phase must respect them.
 
 ```
                          ┌─────────────────────────┐
-                         │  Web (Next 15, Vercel)  │
+                         │  Web (Next 16, Vercel)  │
    browser ─────────────▶│  - admin & operator UI  │
                          │  - i18n, charts          │
                          └───────┬─────────┬────────┘
@@ -263,7 +263,7 @@ not a rewrite.
 
 ## 10. Stack summary
 
-**Web** — Next 15 (App Router, TS), Tailwind CSS v4 + shadcn/ui, TanStack Query,
+**Web** — Next 16 (App Router, TS), Tailwind CSS v4 + shadcn/ui, TanStack Query,
 React Hook Form + Zod, next-intl, Supabase JS (auth + realtime only), generated
 OpenAPI client, Recharts/Tremor for charts.
 

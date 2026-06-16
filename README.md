@@ -7,7 +7,7 @@ cross-location analytics for network owners.
 > A 2026 rebuild of an older Nuxt 2 / Express / MySQL product. We keep the
 > domain concept and rebuild on a modern, locale-agnostic, type-safe stack.
 
-**Status:** bootstrapping (planning complete, Phase 0 next).
+**Status:** Phase 0 complete — runnable monorepo with tooling, gates, and CI.
 
 ## Highlights
 
@@ -23,7 +23,7 @@ cross-location analytics for network owners.
 
 ## Stack
 
-- **Web:** Next 15 (App Router, TS), Tailwind v4 + shadcn/ui, TanStack Query,
+- **Web:** Next 16 (App Router, TS), Tailwind v4 + shadcn/ui, TanStack Query,
   React Hook Form + Zod, next-intl.
 - **API:** Python 3.12+, FastAPI, SQLAlchemy 2.0 (async) + Alembic, Pydantic v2.
 - **Data:** Supabase Postgres (Auth + Realtime + RLS).
@@ -51,8 +51,54 @@ docs/         # architecture, roadmap, conventions
 
 ## Getting started
 
-> Detailed setup lands in Phase 0. In short: install tools via `mise install`,
-> then start `apps/web` and `apps/api` with the documented dev commands.
+### Prerequisites
+
+Install [mise](https://mise.jdx.dev/), which pins and provisions every tool
+(Node 22, pnpm 10.x, Python 3.12, uv) from `mise.toml`:
+
+```bash
+curl https://mise.run | sh        # one-time mise install
+mise install                      # provision Node, pnpm, Python, uv
+```
+
+### Install dependencies
+
+```bash
+pnpm install                      # JS workspace (web, shared) + git hooks
+uv sync --directory apps/api      # Python deps for the API
+```
+
+### Run the apps
+
+```bash
+pnpm dev:web                      # Next.js → http://localhost:3000
+pnpm dev:api                      # FastAPI → http://127.0.0.1:8000
+```
+
+- API health check: `GET /health` → `{"status": "ok"}`
+- API docs (Swagger): http://127.0.0.1:8000/docs
+
+Copy the env templates before configuring real services:
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+cp apps/api/.env.example apps/api/.env
+```
+
+### Quality gate
+
+Lefthook runs Biome and Ruff on staged files at commit time; commitlint
+enforces Conventional Commits. To run the full gate manually:
+
+```bash
+pnpm lint                         # Biome (web + shared)
+pnpm typecheck                    # tsc --noEmit (web + shared)
+pnpm build:web                    # next build
+pnpm lint:api                     # ruff check
+pnpm format:api:check             # ruff format --check
+pnpm typecheck:api                # mypy (strict)
+pnpm test:api                     # pytest
+```
 
 ## Conventions
 
