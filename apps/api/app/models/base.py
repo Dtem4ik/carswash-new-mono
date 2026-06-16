@@ -33,3 +33,8 @@ def uuid_pk() -> Mapped[uuid.UUID]:
 def created_at_col() -> Mapped[datetime.datetime]:
     """A UTC ``timestamptz`` column defaulting to ``now()``."""
     return mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+
+
+def updated_at_col() -> Mapped[datetime.datetime]:
+    """A UTC ``timestamptz`` column kept current by the ``set_updated_at`` trigger."""
+    return mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
