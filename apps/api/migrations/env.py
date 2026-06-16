@@ -31,11 +31,19 @@ def _sync_url() -> str:
     return url
 
 
+# Expression (functional) indexes are created in raw SQL and are not
+# round-trippable by autogenerate; exclude them from comparison by name so
+# `alembic check` stays clean. They remain migration-managed.
+MIGRATION_MANAGED_INDEXES = {"uq_cars_organization_id_plate_norm"}
+
+
 def include_object(
     obj: Any, name: str | None, type_: str, reflected: bool, compare_to: Any
 ) -> bool:
-    """Skip the Supabase-managed ``auth`` schema during autogenerate."""
-    return getattr(obj, "schema", None) != "auth"
+    """Skip the Supabase-managed ``auth`` schema and migration-managed indexes."""
+    if getattr(obj, "schema", None) == "auth":
+        return False
+    return not (type_ == "index" and name in MIGRATION_MANAGED_INDEXES)
 
 
 def run_migrations_offline() -> None:
