@@ -11,6 +11,15 @@ from app.models.catalog import (
     ServicePrice,
 )
 from app.models.enums import BoxStatus, MembershipRole, OrderStatus
+from app.models.operations import (
+    Box,
+    Car,
+    Client,
+    ClientCar,
+    Order,
+    OrderService,
+    Shift,
+)
 from app.models.tenancy import CarWash, Membership, Organization, Profile
 
 __all__ = [
@@ -28,4 +37,11 @@ __all__ = [
     "Package",
     "PackageService",
     "PackagePrice",
+    "Box",
+    "Shift",
+    "Client",
+    "Car",
+    "ClientCar",
+    "Order",
+    "OrderService",
 ]
