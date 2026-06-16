@@ -33,7 +33,10 @@ If anything conflicts with the docs, the docs win — ask before proceeding.
 - Use **Conventional Commits**. Use the `gh` CLI for GitHub and the `vercel` CLI
   for Vercel. The Vercel team is **dtem4iks-projects**
   (`team_GFdQ1qy8JAmh9XDjyLqlz1CV`).
-- This is a **proprietary** product → the GitHub repo must be **private**.
+- The GitHub repo is **public** (portfolio/showcase), but the product stays
+  **proprietary**: keep the "all rights reserved" stance (no OSS license file —
+  do not add MIT/Apache/etc.). Public means visible, not reusable. Be extra
+  strict that no secrets, keys, or customer data ever enter git.
 - Stop at the phase boundary. Do not begin Phase 1.
 
 ## Step 3 — Git: consolidate onto `main`
@@ -54,7 +57,8 @@ one exception (establishing the repo).
 Use `gh repo create` with:
 
 - **Name:** `carswash-new-mono`
-- **Visibility:** private
+- **Visibility:** public (portfolio/showcase; keep the proprietary license
+  stance — do not add an OSS license file)
 - **Description:** `Multi-tenant SaaS for car-wash networks — monorepo (Next 16 web + FastAPI api). 2026 rebuild.`
 - Set it as the `origin` remote and push `main`.
 
