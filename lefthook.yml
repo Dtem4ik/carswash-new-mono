@@ -1,0 +1,19 @@
+# Git hooks. Pre-commit stays fast (staged files only); heavier checks
+# (type-check, build, full test suite) run in CI.
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
+      run: pnpm exec biome check --no-errors-on-unmatched {staged_files}
+    ruff-check:
+      glob: "apps/api/**/*.py"
+      run: uv run --project apps/api ruff check {staged_files}
+    ruff-format:
+      glob: "apps/api/**/*.py"
+      run: uv run --project apps/api ruff format --check {staged_files}
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
