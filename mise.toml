@@ -4,7 +4,7 @@
 # Env is loaded by each app itself (Next.js reads apps/web/.env.local;
 # pydantic-settings reads apps/api/.env) — see the .env.example files.
 [tools]
-node = "22"        # LTS line; web (Next 15) and JS tooling
-pnpm = "10"        # latest 10.x; JS workspace package manager
-python = "3.12"    # api (FastAPI)
+node = "24"        # current LTS; web (Next 16) and JS tooling
+pnpm = "11"        # latest major; JS workspace package manager
+python = "3.13"    # api (FastAPI); supported by the Vercel Python runtime
 uv = "latest"      # Python project & dependency manager
