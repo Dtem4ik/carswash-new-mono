@@ -18,6 +18,11 @@ dev = [
     "ruff>=0.15.17",
 ]
 
+# Vercel's native FastAPI runtime locates the ASGI app via this entrypoint.
+# (Project root on Vercel is apps/api; full prod env + migrations are Phase 7.)
+[tool.vercel]
+entrypoint = "app.main:app"
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
