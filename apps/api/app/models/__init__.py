@@ -18,6 +18,7 @@ from app.models.operations import (
     ClientCar,
     Order,
     OrderService,
+    OrderWasher,
     Shift,
 )
 from app.models.tenancy import CarWash, Membership, Organization, Profile
@@ -44,4 +45,5 @@ __all__ = [
     "ClientCar",
     "Order",
     "OrderService",
+    "OrderWasher",
 ]
