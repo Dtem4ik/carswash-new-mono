@@ -2,8 +2,10 @@
 
 The canonical schema for CarsWash: SQLAlchemy 2.0 models in
 `apps/api/app/models/`, migrated by Alembic in `apps/api/migrations/`. It
-implements ARCHITECTURE.md §5, with the decisions taken in Phase 1 and the
-corrective refinements from Phase 1.5 (migrations `0005`–`0010`).
+implements ARCHITECTURE.md §5, with the decisions taken in Phase 1, the
+corrective refinements from Phase 1.5 (migrations `0005`–`0010`), and the money /
+cash / payroll / integrity foundations from Phase 1.6 (migrations `0011`–`0017`,
+recorded in `docs/ai/phase-1.6-decisions.md`).
 
 ## Conventions
 
@@ -20,7 +22,13 @@ corrective refinements from Phase 1.5 (migrations `0005`–`0010`).
 - **Enums** — native Postgres enum types, codes only (no localized prose):
   `membership_role (owner, org_admin, manager, washer)`,
   `order_status (queued, in_progress, done, cancelled)`,
-  `box_status (free, busy)`.
+  `box_status (free, busy)`,
+  `payment_method (cash, card, transfer, bonus)`,
+  `payment_kind (payment, refund)`,
+  `order_payment_status (unpaid, partial, paid, credit, refunded)`,
+  `cash_movement_type (expense, payout, collection, deposit)`,
+  `discount_type (none, manual, loyalty, promo, subscription)`,
+  `client_kind (walkin, regular, corporate)`.
 - **Indexes** — every foreign key is indexed; plus a composite
   `orders(car_wash_id, status)` for the live board/queue.
 
@@ -53,25 +61,68 @@ car wash in the organization; a set `car_wash_id` scopes to that single location
 
 | table | key columns | notes |
 |-------|-------------|-------|
-| `boxes` | `car_wash_id→`, `name`, `status box_status`, `active_order_id?` (uuid, no FK), `sort`, `is_active`, `updated_at` | a wash bay |
-| `shifts` | `car_wash_id→`, `opened_by→auth.users`, `opened_at`, `closed_at?` | work period |
-| `clients` | `organization_id→`, `name`, `phone?`, `updated_at` | dedup: partial UNIQUE(org, phone) WHERE phone IS NOT NULL |
+| `boxes` | `car_wash_id→`, `name`, `status box_status`, `active_order_id?` (uuid, no FK), `sort`, `is_active`, `updated_at` | a wash bay; UNIQUE(car_wash_id, id) |
+| `shifts` | `car_wash_id→`, `opened_by→auth.users`, `closed_by?→auth.users`, `opened_at`, `closed_at?`, `opening_float_minor`, `counted_cash_minor?`, `closing_expected_minor?` | work period + till reconciliation; UNIQUE(car_wash_id, id); one open shift per wash |
+| `clients` | `organization_id→`, `name`, `phone?`, `kind client_kind`, `updated_at` | dedup: partial UNIQUE(org, phone) WHERE phone IS NOT NULL |
 | `cars` | `organization_id→`, `plate`, `car_type_id→`, `brand?`, `model?`, `updated_at` | dedup: UNIQUE(org, normalized plate) |
 | `client_cars` | `client_id→`, `car_id→` | link |
-| `orders` | `car_wash_id→`, `box_id→`, `shift_id→`, `client_car_id→`, `car_type_id→`, `status order_status`, `price_amount_minor`, `currency CHAR(3)`, `discount_pct`, `package_id→?`, `created_by→auth.users`, `finished_by?→auth.users`, `started_at?`, `finished_at?`, `created_at`, `updated_at` | the wash order |
+| `orders` | `car_wash_id→`, `box_id→`, `shift_id→`, `client_car_id?→`, `plate?`, `car_type_id→`, `number`, `status order_status`, `subtotal_minor`, `discount_amount_minor`, `discount_type`, `total_minor`, `currency CHAR(3)`, `payment_status`, `authorized_by?→auth.users`, `package_id→?`, `created_by→auth.users`, `finished_by?→auth.users`, `started_at?`, `finished_at?`, `created_at`, `updated_at` | the wash order; UNIQUE(car_wash_id, number) |
 | `order_services` | `order_id→`, `service_id→`, `unit_amount_minor`, `qty` | line items (price snapshot); `unit_amount_minor >= 0` |
-| `order_washers` | `order_id→` (CASCADE), `user_id→auth.users` (RESTRICT) | washers on an order; UNIQUE(order, user) |
+| `order_washers` | `order_id→` (CASCADE), `user_id→auth.users` (RESTRICT), `share_bps`, `earned_amount_minor` | washers on an order; UNIQUE(order, user); pay snapshot |
+| `payments` | `order_id→` (CASCADE), `car_wash_id→` (RESTRICT), `method payment_method`, `kind payment_kind`, `amount_minor`, `currency CHAR(3)`, `received_by?→auth.users`, `paid_at`, `created_at`, `updated_at` | money against an order; `amount_minor >= 0` |
+| `cash_movements` | `shift_id→` (CASCADE), `car_wash_id→` (RESTRICT), `type cash_movement_type`, `amount_minor`, `reason?`, `payee_user_id?→auth.users`, `created_by→auth.users`, `created_at` | non-sale cash events; `amount_minor >= 0` |
+| `car_wash_order_counters` | `car_wash_id` PK→ (CASCADE), `next_number` | per-wash allocator for `orders.number` |
 
 `boxes.active_order_id` is a plain nullable `uuid` (no FK) to avoid a circular
 constraint with `orders.box_id`, which carries the enforced reference.
 `orders.created_by` is who opened the order; `orders.finished_by` is who closed
 it; `orders.car_type_id` snapshots the body class used for pricing at sale time.
 
+### Money, cash & payroll
+
+- **Order money** is an explicit breakdown: `subtotal_minor` (pre-discount),
+  `discount_amount_minor` (exact money), and `total_minor` (net), with
+  `discount_type` and `authorized_by` for provenance. The invariant
+  `total_minor = subtotal_minor - discount_amount_minor` is a CHECK, so the three
+  figures can never drift.
+- **Payments** are a first-class entity: an order can have several (mixed tender,
+  prepay + top-up). They are the **source of truth** for `orders.payment_status`
+  (a denormalized cache the app maintains). A **refund** is a row with
+  `kind='refund'` and a **positive** amount — never a negative payment.
+- **Shift till** — a shift opens with `opening_float_minor` and, at close,
+  snapshots `closing_expected_minor` and records the counted `counted_cash_minor`;
+  the variance is derivable. `cash_movements` records non-sale cash events
+  (expense / payout / collection / deposit) during the shift.
+- **Washer payroll** — `order_washers.share_bps` (basis points of the washer
+  pool) and `earned_amount_minor` are **snapshotted at sale time** so historical
+  pay never moves when rates change. The rate-config source (per-service /
+  per-car-wash policy) is deferred to a later phase; these columns are the seam.
+- **Order number** — `orders.number` is a per-car-wash, monotonic receipt number
+  (no daily reset), allocated from `car_wash_order_counters` (Phase 3 locks the
+  row and returns-then-increments inside the order tx). UNIQUE(car_wash_id, number).
+- **Walk-ins** — `orders.client_car_id` is nullable; an anonymous "washed and
+  left" car is recorded by `orders.plate` alone (`car_type_id` still drives
+  pricing). `clients.kind` distinguishes walk-in / regular / corporate.
+
 ### Integrity checks
 
-- `orders.discount_pct` ∈ [0, 100].
-- `*_amount_minor >= 0` on `orders`, `order_services`, `service_prices`,
-  `package_prices`.
+- `orders`: `subtotal_minor >= 0`, `discount_amount_minor >= 0`,
+  `discount_amount_minor <= subtotal_minor`, and
+  `total_minor = subtotal_minor - discount_amount_minor`.
+- `*_amount_minor >= 0` on `order_services`, `service_prices`, `package_prices`,
+  `payments`, `cash_movements`.
+- `shifts`: `opening_float_minor >= 0`, `counted_cash_minor >= 0`.
+- `order_washers`: `share_bps >= 0`, `earned_amount_minor >= 0`.
+
+### Tenant integrity by construction
+
+- **One open shift per car wash** — partial unique index
+  `uq_shifts_one_open ON shifts(car_wash_id) WHERE closed_at IS NULL`.
+- **No cross-wash references** — `boxes` and `shifts` carry a composite
+  UNIQUE(car_wash_id, id); `orders` carries composite FKs
+  `(car_wash_id, box_id) → boxes(car_wash_id, id)` and
+  `(car_wash_id, shift_id) → shifts(car_wash_id, id)`, so an order can never point
+  at another car wash's box or shift. The single-column FKs/indexes are kept.
 
 ### Dedup & plate normalization
 
@@ -87,8 +138,8 @@ it; `orders.car_type_id` snapshots the body class used for pricing at sale time.
 A shared `public.set_updated_at()` trigger function sets `NEW.updated_at` on every
 `UPDATE` (BEFORE UPDATE trigger on each mutable table: `organizations`,
 `car_washes`, `service_prices`, `package_prices`, `boxes`, `clients`, `cars`,
-`orders`). It uses `clock_timestamp()` so the value reflects the actual write
-moment.
+`orders`, `payments`). It uses `clock_timestamp()` so the value reflects the
+actual write moment.
 
 ## Tenant isolation (RLS)
 
@@ -123,6 +174,10 @@ CREATE POLICY <table>_select_by_membership ON public.<table>
 - `apps/api/tests/test_schema.py` — car plate dedup (duplicate within an org
   rejected, same plate across orgs allowed), `order_washers` link + uniqueness,
   and `updated_at` advancing on UPDATE.
+- `apps/api/tests/test_money_foundations.py` — one open shift per car wash, the
+  cross-wash composite FK rejecting another wash's box, the order money CHECK
+  (`total = subtotal - discount`), the payment + refund flow with `payment_status`,
+  and an anonymous walk-in order (NULL `client_car_id` + `plate`).
 
 All run against the configured Postgres in rolled-back transactions and are
 skipped when no database is configured (e.g. CI without secrets).
