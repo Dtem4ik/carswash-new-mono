@@ -33,6 +33,12 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
   "roles": {
     "owner": "Owner",
     "org_admin": "Org admin",
