@@ -146,11 +146,12 @@ def test_rls_orders_tenant_isolation() -> None:
             conn.execute(
                 sa.text(
                     "INSERT INTO orders (id, car_wash_id, box_id, shift_id, client_car_id,"
-                    " car_type_id, status, price_amount_minor, currency, created_by) VALUES"
-                    " (:oa, :cwA, :boxA, :shiftA, :ccA, :ct, 'queued'::order_status,"
-                    " 200000, 'KZT', :o),"
-                    " (:ob, :cwB, :boxB, :shiftB, :ccB, :ct, 'queued'::order_status,"
-                    " 300000, 'KZT', :o)"
+                    " car_type_id, number, status, subtotal_minor, total_minor, currency,"
+                    " created_by) VALUES"
+                    " (:oa, :cwA, :boxA, :shiftA, :ccA, :ct, 1, 'queued'::order_status,"
+                    " 200000, 200000, 'KZT', :o),"
+                    " (:ob, :cwB, :boxB, :shiftB, :ccB, :ct, 1, 'queued'::order_status,"
+                    " 300000, 300000, 'KZT', :o)"
                 ),
                 {
                     "oa": ids["orderA"],
