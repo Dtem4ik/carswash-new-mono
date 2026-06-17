@@ -30,8 +30,9 @@
     "activeCarWash": "Активная мойка",
     "account": "Аккаунт",
     "contextUnavailable": "Не удалось загрузить рабочий контекст. Запущен ли API?",
-    "openMenu": "Открыть меню",
-    "closeMenu": "Закрыть меню"
+    "toggleSidebar": "Переключить боковую панель",
+    "sidebarLabel": "Боковая панель",
+    "sidebarDescription": "Основная навигация"
   },
   "theme": {
     "label": "Тема",
