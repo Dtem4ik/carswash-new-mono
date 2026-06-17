@@ -1,6 +1,6 @@
 "use client";
 
-import { Translate } from "@phosphor-icons/react";
+import { Languages } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useTransition } from "react";
@@ -24,9 +24,8 @@ export function LanguageSwitcher() {
 
   return (
     <label className="relative flex items-center">
-      <Translate
+      <Languages
         size={16}
-        weight="regular"
         aria-hidden="true"
         className="text-muted-foreground pointer-events-none absolute left-2.5"
       />

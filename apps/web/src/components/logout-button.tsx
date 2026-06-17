@@ -1,6 +1,6 @@
 "use client";
 
-import { SignOut } from "@phosphor-icons/react";
+import { LogOut } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -16,7 +16,7 @@ export function LogoutButton() {
 
   return (
     <Button variant="outline" size="sm" className="h-9" onClick={onClick}>
-      <SignOut size={16} weight="regular" aria-hidden="true" />
+      <LogOut size={16} aria-hidden="true" />
       <span className="hidden sm:inline">{t("signOut")}</span>
     </Button>
   );

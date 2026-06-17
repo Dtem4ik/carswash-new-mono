@@ -1,6 +1,6 @@
 "use client";
 
-import { Garage, Warning } from "@phosphor-icons/react";
+import { TriangleAlert, Warehouse } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { BoardContextStrip } from "@/components/board/board-context-strip";
@@ -72,7 +72,7 @@ export function BoxesBoard() {
         className="border-destructive/30 bg-destructive/5 text-destructive flex flex-col items-start gap-3 rounded-2xl border p-5 text-sm"
       >
         <div className="flex items-center gap-2 font-medium">
-          <Warning size={18} weight="fill" aria-hidden="true" />
+          <TriangleAlert size={18} aria-hidden="true" />
           {tBoard("loadError")}
         </div>
         <p>{message}</p>
@@ -139,7 +139,7 @@ function EmptyState({ title, hint }: { title: string; hint: string }) {
         aria-hidden="true"
         className="bg-muted text-muted-foreground flex size-12 items-center justify-center rounded-2xl"
       >
-        <Garage size={24} weight="regular" />
+        <Warehouse size={24} />
       </span>
       <div className="space-y-1">
         <p className="font-medium">{title}</p>

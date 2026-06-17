@@ -1,7 +1,7 @@
 "use client";
 
 import type { CarWash } from "@carswash/shared";
-import { Storefront } from "@phosphor-icons/react";
+import { Store } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
@@ -35,12 +35,7 @@ export function CarWashSwitcher({ carWashes, activeCarWashId }: Props) {
     const only = carWashes[0];
     return (
       <span className="flex h-9 items-center gap-2 rounded-md px-1 text-sm">
-        <Storefront
-          size={16}
-          weight="regular"
-          aria-hidden="true"
-          className="text-muted-foreground"
-        />
+        <Store size={16} aria-hidden="true" className="text-muted-foreground" />
         <span className="sr-only">{t("activeCarWash")}</span>
         <span className="font-medium">{only ? only.name : "—"}</span>
       </span>
@@ -49,9 +44,8 @@ export function CarWashSwitcher({ carWashes, activeCarWashId }: Props) {
 
   return (
     <label className="relative flex items-center">
-      <Storefront
+      <Store
         size={16}
-        weight="regular"
         aria-hidden="true"
         className="text-muted-foreground pointer-events-none absolute left-2.5"
       />
