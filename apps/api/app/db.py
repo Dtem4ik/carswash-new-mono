@@ -19,11 +19,17 @@ from app.config import settings
 
 
 def _async_url(raw: str) -> str:
-    """Normalize a Postgres URL to the asyncpg driver scheme."""
-    if raw.startswith("postgresql+asyncpg://"):
-        return raw
-    scheme, _, rest = raw.partition("://")
-    return f"postgresql+asyncpg://{rest}"
+    """Normalize a Postgres URL to the asyncpg driver scheme.
+
+    The libpq-style query string (``sslmode``, Supabase's ``supa`` marker, …) is
+    dropped: asyncpg rejects those keywords, and SSL is supplied via
+    ``connect_args`` instead.
+    """
+    base = raw if raw.startswith("postgresql+asyncpg://") else None
+    if base is None:
+        _, _, rest = raw.partition("://")
+        base = f"postgresql+asyncpg://{rest}"
+    return base.split("?", 1)[0]
 
 
 def create_engine() -> AsyncEngine:
