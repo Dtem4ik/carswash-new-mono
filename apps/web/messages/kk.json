@@ -1,0 +1,56 @@
+{
+  "app": {
+    "name": "CarsWash"
+  },
+  "common": {
+    "loading": "Жүктелуде…",
+    "error": "Бірдеңе дұрыс болмады",
+    "retry": "Қайталау",
+    "language": "Тіл",
+    "signOut": "Шығу"
+  },
+  "auth": {
+    "signInTitle": "Кіру",
+    "email": "Электрондық пошта",
+    "password": "Құпиясөз",
+    "signIn": "Кіру",
+    "signingIn": "Кіру…",
+    "invalidCredentials": "Пошта немесе құпиясөз қате"
+  },
+  "nav": {
+    "sectionLabel": "Навигация",
+    "board": "Тақта",
+    "orders": "Тапсырыстар",
+    "shift": "Ауысым",
+    "admin": "Әкімшілік",
+    "comingSoon": "Жақында"
+  },
+  "shell": {
+    "organization": "Ұйым",
+    "activeCarWash": "Белсенді жуу орны",
+    "account": "Аккаунт",
+    "contextUnavailable": "Жұмыс контексті жүктелмеді. API іске қосылған ба?",
+    "openMenu": "Мәзірді ашу",
+    "closeMenu": "Мәзірді жабу"
+  },
+  "roles": {
+    "owner": "Иесі",
+    "org_admin": "Желі әкімшісі",
+    "manager": "Менеджер",
+    "washer": "Жуушы"
+  },
+  "board": {
+    "title": "Бокстар тақтасы",
+    "subtitle": "Бокстар күйі мен кезектер нақты уақытта",
+    "empty": "Бокстар бапталмаған",
+    "emptyHint": "Әкімшілік бөлімінде бокс қосыңыз, сонда олар осы жерде көрінеді.",
+    "loadError": "Тақтаны жүктеу мүмкін болмады",
+    "queue": "Кезек",
+    "queueEmpty": "Кезек бос",
+    "queueCount": "{count, plural, one {кезекте #} other {кезекте #}}",
+    "orderNumber": "Тапсырыс №{number}",
+    "total": "Сома",
+    "plateUnknown": "Нөмірсіз",
+    "activeOrder": "Ағымдағы тапсырыс"
+  }
+}

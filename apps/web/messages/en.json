@@ -1,0 +1,56 @@
+{
+  "app": {
+    "name": "CarsWash"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "language": "Language",
+    "signOut": "Sign out"
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "invalidCredentials": "Invalid email or password"
+  },
+  "nav": {
+    "sectionLabel": "Navigation",
+    "board": "Board",
+    "orders": "Orders",
+    "shift": "Shift",
+    "admin": "Admin",
+    "comingSoon": "Soon"
+  },
+  "shell": {
+    "organization": "Organization",
+    "activeCarWash": "Active car wash",
+    "account": "Account",
+    "contextUnavailable": "Could not load your working context. Is the API running?",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "roles": {
+    "owner": "Owner",
+    "org_admin": "Org admin",
+    "manager": "Manager",
+    "washer": "Washer"
+  },
+  "board": {
+    "title": "Boxes board",
+    "subtitle": "Live box status and queues",
+    "empty": "No boxes configured",
+    "emptyHint": "Add boxes in the admin section and they will appear here.",
+    "loadError": "Could not load the board",
+    "queue": "Queue",
+    "queueEmpty": "Queue is empty",
+    "queueCount": "{count, plural, one {# in queue} other {# in queue}}",
+    "orderNumber": "Order #{number}",
+    "total": "Total",
+    "plateUnknown": "No plate",
+    "activeOrder": "Active order"
+  }
+}
