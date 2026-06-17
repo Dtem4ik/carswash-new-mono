@@ -1,11 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/messages";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
+  const t = useTranslations();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
+    <main className="flex min-h-[100dvh] flex-col items-center justify-center p-8">
       <form
         onSubmit={onSubmit}
         className="bg-card w-full max-w-sm space-y-5 rounded-xl border p-8 shadow-sm"
@@ -55,7 +56,7 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+            className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none"
           />
         </div>
 
@@ -70,7 +71,7 @@ export default function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+            className="border-input bg-background focus-visible:ring-ring h-11 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none"
           />
         </div>
 
@@ -80,7 +81,7 @@ export default function LoginPage() {
           </p>
         ) : null}
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="h-11 w-full" disabled={loading}>
           {loading ? t("auth.signingIn") : t("auth.signIn")}
         </Button>
       </form>
