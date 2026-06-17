@@ -103,8 +103,9 @@ tinted pill in `src/components/status-badge.tsx`. Components never invent colors
 - Keyboard-navigable; **visible focus rings** (accent ring) on every control.
 - Contrast **AA** for text and meaningful UI. Status never by color alone.
 - Inputs: label above, error below, `gap-2`. Tactile: `:active` translate/scale.
-- Icons: `@phosphor-icons/react`, consistent weight (`regular`, `fill` for
-  active/emphasis). **No emojis.**
+- Icons: `lucide-react` (shadcn's native default) only — one icon library across
+  the app, at a consistent size (18–20) and `strokeWidth` 2; emphasis comes from
+  color, not weight. **No emojis.**
 
 ## Mandatory states for every data view
 

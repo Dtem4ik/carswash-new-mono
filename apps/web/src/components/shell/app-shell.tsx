@@ -1,6 +1,6 @@
 "use client";
 
-import { Drop, List, X } from "@phosphor-icons/react";
+import { Droplet, Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useState } from "react";
 import { CarWashSwitcher } from "@/components/car-wash-switcher";
@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-expanded={drawerOpen}
             onClick={() => setDrawerOpen(true)}
           >
-            <List size={20} />
+            <Menu size={20} />
           </Button>
 
           <div className="flex min-w-0 items-center gap-2.5">
@@ -44,7 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-hidden="true"
               className="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-xl shadow-sm"
             >
-              <Drop size={20} weight="fill" />
+              <Droplet size={20} />
             </span>
             <div className="flex min-w-0 flex-col leading-tight">
               <span className="text-base font-semibold tracking-tight">
@@ -109,7 +109,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   aria-hidden="true"
                   className="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-xl shadow-sm"
                 >
-                  <Drop size={20} weight="fill" />
+                  <Droplet size={20} />
                 </span>
                 <span className="text-base font-semibold tracking-tight">
                   {tApp("name")}

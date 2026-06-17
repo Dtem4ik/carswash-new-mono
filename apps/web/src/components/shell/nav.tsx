@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  Gear,
-  type Icon,
+  LayoutGrid,
+  type LucideIcon,
   Receipt,
-  SquaresFour,
+  Settings,
   Timer,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -15,16 +15,16 @@ import { cn } from "@/lib/utils";
 interface NavItem {
   key: "board" | "orders" | "shift" | "admin";
   href: string;
-  icon: Icon;
+  icon: LucideIcon;
   /** Board ships in Phase 4a; the rest land in 4b/4c and are disabled for now. */
   enabled: boolean;
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { key: "board", href: "/board", icon: SquaresFour, enabled: true },
+  { key: "board", href: "/board", icon: LayoutGrid, enabled: true },
   { key: "orders", href: "/orders", icon: Receipt, enabled: false },
   { key: "shift", href: "/shift", icon: Timer, enabled: false },
-  { key: "admin", href: "/admin", icon: Gear, enabled: false },
+  { key: "admin", href: "/admin", icon: Settings, enabled: false },
 ];
 
 /** Primary navigation, shared by the desktop sidebar and the mobile drawer. */
@@ -47,7 +47,7 @@ export function Nav({ onNavigate }: { onNavigate?: () => void }) {
               className="text-muted-foreground/55 flex min-h-11 cursor-not-allowed items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium select-none"
             >
               <span className="flex items-center gap-3">
-                <Icon size={18} weight="regular" />
+                <Icon size={18} />
                 {t(item.key)}
               </span>
               <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase">
@@ -70,11 +70,7 @@ export function Nav({ onNavigate }: { onNavigate?: () => void }) {
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <Icon
-              size={18}
-              weight={active ? "fill" : "regular"}
-              className={active ? "text-primary" : undefined}
-            />
+            <Icon size={18} className={active ? "text-primary" : undefined} />
             {t(item.key)}
           </Link>
         );

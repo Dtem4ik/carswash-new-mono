@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Plus } from "@phosphor-icons/react";
+import { Clock, Plus } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -103,7 +103,7 @@ export function BoxCard({
 
           {activeOrder.started_at ? (
             <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
-              <Clock size={13} weight="regular" aria-hidden="true" />
+              <Clock size={14} aria-hidden="true" />
               <span className="font-mono">
                 {fmt.time(activeOrder.started_at, timeZone)}
               </span>
@@ -124,7 +124,7 @@ export function BoxCard({
                 "min-h-11 w-full gap-1.5",
               )}
             >
-              <Plus size={16} weight="bold" aria-hidden="true" />
+              <Plus size={16} aria-hidden="true" />
               {tBoard("newOrder")}
             </Link>
           ) : null}
