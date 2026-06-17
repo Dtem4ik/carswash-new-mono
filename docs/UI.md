@@ -121,10 +121,19 @@ primitives.
   wrap the shell or board in a `max-w-*` centering container (it detaches the
   content from the rail on wide screens). A reading-width cap may be applied only
   to narrow text-form views if needed — never to the dashboard frame.
-- **App shell:** left nav (collapses to a drawer on small screens) + a clean
-  header carrying the brand mark, the org, the car-wash switcher, the language
-  switcher, and the signed-in user with logout. The active nav item carries the
-  accent.
+- **App shell:** a **collapsible (icon) sidebar** built on shadcn's `Sidebar`
+  (`collapsible="icon"`) + a clean header carrying the sidebar trigger, the brand
+  mark, the org, the car-wash switcher, the language switcher, the theme toggle,
+  and the signed-in user with logout.
+  - Expanded, the sidebar shows icon + label (and a "soon" badge for disabled
+    items); collapsed, it shows icon-only and surfaces each label as a **tooltip**
+    (the badge hides). The active route uses the sidebar's `isActive` state and
+    carries the accent.
+  - The open/collapsed state is **persisted** via shadcn's `sidebar_state` cookie,
+    read as `defaultOpen` in the `(app)` layout so there is **no flash** on
+    reload, and toggled from the header trigger or `⌘/Ctrl+B`.
+  - On mobile the sidebar is a **sheet** (via the `use-mobile` hook) that opens
+    from the trigger and closes on navigation or overlay tap. No bespoke drawer.
 - **Board grid:** `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`.
   Mobile collapses to a single column at `px-4`.
 
