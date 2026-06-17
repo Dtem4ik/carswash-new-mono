@@ -50,6 +50,7 @@ from app.models.operations import (
 router = APIRouter(tags=["orders"])
 
 _create = require_capability(Capability.ORDERS_CREATE)
+_close = require_capability(Capability.ORDERS_CLOSE)
 
 
 def _now() -> datetime.datetime:
@@ -62,6 +63,10 @@ def _normalize_plate(value: str) -> str:
 
 def _bad_request(code: str) -> HTTPException:
     return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"code": code})
+
+
+def _conflict(code: str) -> HTTPException:
+    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"code": code})
 
 
 # --- schemas ------------------------------------------------------------------
@@ -521,6 +526,105 @@ async def create_order(
     # Corporate customers wash on credit from day one.
     if await _order_is_corporate(session, order):
         order.payment_status = OrderPaymentStatus.credit
+
+    await session.commit()
+    return await _build_detail(session, order.id, car_wash_id)
+
+
+# --- close / cancel -----------------------------------------------------------
+
+
+async def _order_for_update(
+    session: AsyncSession, order_id: uuid.UUID, car_wash_id: uuid.UUID
+) -> Order:
+    obj = (
+        await session.execute(
+            select(Order)
+            .where(Order.id == order_id, Order.car_wash_id == car_wash_id)
+            .with_for_update()
+        )
+    ).scalar_one_or_none()
+    if obj is None:
+        raise not_found()
+    return obj
+
+
+async def _promote_box_queue(session: AsyncSession, box: Box, now: datetime.datetime) -> None:
+    """Start the oldest queued order on ``box``, or free the box if none."""
+    nxt = (
+        await session.execute(
+            select(Order)
+            .where(
+                Order.box_id == box.id,
+                Order.car_wash_id == box.car_wash_id,
+                Order.status == OrderStatus.queued,
+            )
+            .order_by(Order.number)
+            .limit(1)
+            .with_for_update()
+        )
+    ).scalar_one_or_none()
+    if nxt is not None:
+        nxt.status = OrderStatus.in_progress
+        nxt.started_at = now
+        box.active_order_id = nxt.id
+        box.status = BoxStatus.busy
+    else:
+        box.active_order_id = None
+        box.status = BoxStatus.free
+
+
+@router.post(
+    "/orders/{order_id}/close", response_model=OrderDetailOut, dependencies=[Depends(_close)]
+)
+async def close_order(
+    order_id: uuid.UUID,
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> OrderDetailOut:
+    car_wash_id = active_car_wash(ctx)
+    order = await _order_for_update(session, order_id, car_wash_id)
+    if order.status != OrderStatus.in_progress:
+        raise _conflict("order.not_in_progress")
+
+    now = _now()
+    order.status = OrderStatus.done
+    order.finished_by = ctx.user_id
+    order.finished_at = now
+
+    box = (
+        await session.execute(select(Box).where(Box.id == order.box_id).with_for_update())
+    ).scalar_one()
+    if box.active_order_id == order.id:
+        await _promote_box_queue(session, box, now)
+
+    await session.commit()
+    return await _build_detail(session, order.id, car_wash_id)
+
+
+@router.post(
+    "/orders/{order_id}/cancel", response_model=OrderDetailOut, dependencies=[Depends(_close)]
+)
+async def cancel_order(
+    order_id: uuid.UUID,
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> OrderDetailOut:
+    car_wash_id = active_car_wash(ctx)
+    order = await _order_for_update(session, order_id, car_wash_id)
+    if order.status in (OrderStatus.done, OrderStatus.cancelled):
+        raise _conflict("order.not_cancellable")
+
+    now = _now()
+    was_in_progress = order.status == OrderStatus.in_progress
+    order.status = OrderStatus.cancelled
+
+    if was_in_progress:
+        box = (
+            await session.execute(select(Box).where(Box.id == order.box_id).with_for_update())
+        ).scalar_one()
+        if box.active_order_id == order.id:
+            await _promote_box_queue(session, box, now)
 
     await session.commit()
     return await _build_detail(session, order.id, car_wash_id)
