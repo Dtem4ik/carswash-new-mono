@@ -44,8 +44,11 @@ def test_only_privileged_roles_close_orders_and_edit_pricing() -> None:
     assert not can(MembershipRole.washer, Capability.PRICING_EDIT)
 
 
-def test_washer_can_work_orders_but_not_manage_users() -> None:
-    assert can(MembershipRole.washer, Capability.ORDERS_CREATE)
+def test_washer_is_read_only_operationally() -> None:
+    # Web MVP: a washer reads orders but does not create them or manage users.
+    assert can(MembershipRole.washer, Capability.ORDERS_VIEW)
+    assert not can(MembershipRole.washer, Capability.ORDERS_CREATE)
+    assert can(MembershipRole.manager, Capability.ORDERS_CREATE)
     assert not can(MembershipRole.washer, Capability.USERS_MANAGE)
     assert not can(MembershipRole.manager, Capability.USERS_MANAGE)
     assert can(MembershipRole.org_admin, Capability.USERS_MANAGE)
