@@ -1,8 +1,8 @@
 """Role → capability matrix (ARCHITECTURE.md §4).
 
 Pure, side-effect-free authorization data. Capabilities are **stable codes**, not
-localized prose; the web maps them to UI affordances. No endpoint is gated on
-these yet beyond exposing them in ``/me`` — Phase 3 wires them into handlers.
+localized prose; the web maps them to UI affordances. Endpoints gate writes on
+these via the ``require_capability`` dependency.
 """
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ class Capability:
     ORDERS_UPDATE = "orders.update"
     ORDERS_CLOSE = "orders.close"
     ORDERS_CANCEL = "orders.cancel"
+    PAYMENTS_RECORD = "payments.record"
     PRICING_VIEW = "pricing.view"
     PRICING_EDIT = "pricing.edit"
     CATALOG_MANAGE = "catalog.manage"
@@ -26,22 +27,25 @@ class Capability:
     SHIFTS_OPEN = "shifts.open"
     SHIFTS_CLOSE = "shifts.close"
     CASH_MANAGE = "cash.manage"
+    CASH_RECORD = "cash.record"
     CLIENTS_MANAGE = "clients.manage"
     REPORTS_VIEW = "reports.view"
     USERS_MANAGE = "users.manage"
     CAR_WASH_MANAGE = "car_wash.manage"
 
 
-# A washer works orders but cannot close them, touch money, or see reports.
-_WASHER: frozenset[str] = frozenset(
-    {Capability.ORDERS_VIEW, Capability.ORDERS_CREATE, Capability.ORDERS_UPDATE}
-)
+# A washer is read-only operationally for the web MVP: they can see their car
+# wash's orders but do not create/close them or touch money.
+_WASHER: frozenset[str] = frozenset({Capability.ORDERS_VIEW})
 
-# A manager runs a location end to end: orders, pricing, shifts, cash, reports.
+# A manager runs a location end to end: orders, payments, pricing, shifts, cash.
 _MANAGER: frozenset[str] = _WASHER | frozenset(
     {
+        Capability.ORDERS_CREATE,
+        Capability.ORDERS_UPDATE,
         Capability.ORDERS_CLOSE,
         Capability.ORDERS_CANCEL,
+        Capability.PAYMENTS_RECORD,
         Capability.PRICING_VIEW,
         Capability.PRICING_EDIT,
         Capability.CATALOG_MANAGE,
@@ -50,6 +54,7 @@ _MANAGER: frozenset[str] = _WASHER | frozenset(
         Capability.SHIFTS_OPEN,
         Capability.SHIFTS_CLOSE,
         Capability.CASH_MANAGE,
+        Capability.CASH_RECORD,
         Capability.CLIENTS_MANAGE,
         Capability.REPORTS_VIEW,
     }

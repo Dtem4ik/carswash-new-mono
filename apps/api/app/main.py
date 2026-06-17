@@ -9,7 +9,7 @@ is the single source of truth for the web's generated client (packages/shared).
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import boxes, catalog, lookup, me, pricing, shifts
+from app.api import boxes, catalog, lookup, me, orders, pricing, shifts
 from app.config import settings
 
 app = FastAPI(title=settings.app_name, version="0.1.0")
@@ -29,6 +29,7 @@ app.include_router(pricing.router)
 app.include_router(boxes.router)
 app.include_router(lookup.router)
 app.include_router(shifts.router)
+app.include_router(orders.router)
 
 
 @app.get("/health")
