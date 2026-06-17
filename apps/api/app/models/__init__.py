@@ -10,15 +10,28 @@ from app.models.catalog import (
     Service,
     ServicePrice,
 )
-from app.models.enums import BoxStatus, MembershipRole, OrderStatus
+from app.models.enums import (
+    BoxStatus,
+    CashMovementType,
+    ClientKind,
+    DiscountType,
+    MembershipRole,
+    OrderPaymentStatus,
+    OrderStatus,
+    PaymentKind,
+    PaymentMethod,
+)
 from app.models.operations import (
     Box,
     Car,
+    CarWashOrderCounter,
+    CashMovement,
     Client,
     ClientCar,
     Order,
     OrderService,
     OrderWasher,
+    Payment,
     Shift,
 )
 from app.models.tenancy import CarWash, Membership, Organization, Profile
@@ -28,6 +41,12 @@ __all__ = [
     "BoxStatus",
     "MembershipRole",
     "OrderStatus",
+    "PaymentMethod",
+    "PaymentKind",
+    "OrderPaymentStatus",
+    "CashMovementType",
+    "DiscountType",
+    "ClientKind",
     "Organization",
     "CarWash",
     "Profile",
@@ -46,4 +65,7 @@ __all__ = [
     "Order",
     "OrderService",
     "OrderWasher",
+    "Payment",
+    "CashMovement",
+    "CarWashOrderCounter",
 ]
