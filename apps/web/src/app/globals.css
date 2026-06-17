@@ -5,9 +5,12 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * CarsWash design system — see docs/UI.md (binding standard).
- * Neutral base = Zinc. Single accent = Emerald (desaturated, <80% sat).
- * Custom radii + tinted shadows + status-color semantics. Geist / Geist Mono.
+ * CarsWash design system — "calm operational clarity" (see docs/UI.md, binding).
+ * Cool-tinted near-white canvas; surfaces lift above it. Deep cool-slate ink
+ * (never pure black). ONE refined, confident blue accent (AA-tuned). Disciplined
+ * status scale (green / blue / amber / teal-slate / rose / violet), each with a
+ * vivid value (dots + bay bars), a soft tint (pill bg) and a deep ink (pill text).
+ * Rounded-2xl cards, layered ink-tinted shadows. Geist / Geist Mono, tabular.
  */
 @theme inline {
   --color-background: var(--background);
@@ -40,7 +43,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* Status semantics (operational + payment). Used as dot + label, never color alone. */
+  /* Status semantics — vivid values for dots + bay accent bars. */
   --color-status-free: var(--status-free);
   --color-status-progress: var(--status-progress);
   --color-status-queued: var(--status-queued);
@@ -51,111 +54,155 @@
   --color-pay-credit: var(--pay-credit);
   --color-pay-refunded: var(--pay-refunded);
 
-  /* Custom radii — rounded-md controls, rounded-xl cards (not shadcn defaults). */
+  /* Status tones — soft tint (pill bg) + deep ink (pill label, AA on its tint). */
+  --color-tone-green-bg: var(--tone-green-bg);
+  --color-tone-green-fg: var(--tone-green-fg);
+  --color-tone-blue-bg: var(--tone-blue-bg);
+  --color-tone-blue-fg: var(--tone-blue-fg);
+  --color-tone-amber-bg: var(--tone-amber-bg);
+  --color-tone-amber-fg: var(--tone-amber-fg);
+  --color-tone-slate-bg: var(--tone-slate-bg);
+  --color-tone-slate-fg: var(--tone-slate-fg);
+  --color-tone-rose-bg: var(--tone-rose-bg);
+  --color-tone-rose-fg: var(--tone-rose-fg);
+  --color-tone-violet-bg: var(--tone-violet-bg);
+  --color-tone-violet-fg: var(--tone-violet-fg);
+
+  /* Custom radii — rounded-lg controls, rounded-2xl cards (not shadcn defaults). */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
 
-  /* Subtle shadows tinted toward the zinc base, not neutral black. */
-  --shadow-2xs: 0 1px 2px 0 oklch(0.21 0.006 285.885 / 0.04);
-  --shadow-xs: 0 1px 2px 0 oklch(0.21 0.006 285.885 / 0.05);
+  /* Soft, layered shadows tinted toward the ink hue (not flat black). */
+  --shadow-2xs: 0 1px 2px 0 oklch(0.23 0.02 264 / 0.04);
+  --shadow-xs: 0 1px 2px 0 oklch(0.23 0.02 264 / 0.05);
   --shadow-sm:
-    0 1px 3px 0 oklch(0.21 0.006 285.885 / 0.06), 0 1px 2px -1px
-    oklch(0.21 0.006 285.885 / 0.05);
+    0 1px 2px 0 oklch(0.23 0.02 264 / 0.05), 0 1px 3px 0
+    oklch(0.23 0.02 264 / 0.06);
   --shadow-md:
-    0 2px 6px -1px oklch(0.21 0.006 285.885 / 0.08), 0 1px 3px -1px
-    oklch(0.21 0.006 285.885 / 0.05);
+    0 4px 12px -2px oklch(0.23 0.02 264 / 0.1), 0 2px 6px -2px
+    oklch(0.23 0.02 264 / 0.07);
+  --shadow-lg:
+    0 12px 28px -6px oklch(0.23 0.02 264 / 0.12), 0 4px 10px -4px
+    oklch(0.23 0.02 264 / 0.08);
 }
 
 :root {
-  /* Neutral base = Zinc (never pure #000 / #fff for surfaces). */
-  --background: oklch(0.985 0.001 286.375); /* zinc-50 */
-  --foreground: oklch(0.21 0.006 285.885); /* zinc-900 */
+  /* Cool-tinted near-white canvas; cards (near white) lift above it. */
+  --background: oklch(0.984 0.004 247); /* cool near-white, faint blue tint */
+  --foreground: oklch(0.23 0.02 264); /* deep cool-slate ink, never #000 */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.23 0.02 264);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.23 0.02 264);
 
-  /* Single accent = Emerald, used sparingly for primary actions. */
-  --primary: oklch(0.596 0.122 163.225); /* emerald-600, desaturated */
-  --primary-foreground: oklch(0.985 0.002 165);
+  /* Single accent = a refined, confident modern blue (AA-tuned). */
+  --primary: oklch(0.53 0.205 257);
+  --primary-foreground: oklch(0.985 0.005 247);
 
-  --secondary: oklch(0.967 0.001 286.375); /* zinc-100 */
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938); /* zinc-500 */
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.193 27.325); /* rose/red */
-  --border: oklch(0.92 0.004 286.32); /* zinc-200 */
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.596 0.122 163.225); /* accent focus ring */
-  --radius: 0.625rem;
+  --secondary: oklch(0.967 0.006 256); /* cool slate-100 */
+  --secondary-foreground: oklch(0.27 0.02 264);
+  --muted: oklch(0.967 0.006 256);
+  --muted-foreground: oklch(0.53 0.025 257); /* slate-500, AA on canvas */
+  --accent: oklch(0.967 0.006 256);
+  --accent-foreground: oklch(0.27 0.02 264);
+  --destructive: oklch(0.585 0.2 25);
+  --border: oklch(0.922 0.01 256); /* cool slate-200 */
+  --input: oklch(0.922 0.01 256);
+  --ring: oklch(0.53 0.205 257); /* accent focus ring */
+  --radius: 0.875rem;
 
-  /* Operational status palette */
-  --status-free: oklch(0.552 0.016 285.938); /* zinc — neutral/idle */
-  --status-progress: oklch(0.596 0.122 163.225); /* accent — emerald */
-  --status-queued: oklch(0.769 0.158 70.08); /* amber */
-  --status-done: oklch(0.596 0.122 163.225); /* emerald */
-  --status-cancelled: oklch(0.705 0.015 286.067); /* muted zinc-400 */
-  /* Payment status palette */
-  --pay-unpaid: oklch(0.769 0.158 70.08); /* amber */
-  --pay-paid: oklch(0.596 0.122 163.225); /* emerald */
-  --pay-credit: oklch(0.606 0.1 300); /* muted violet */
-  --pay-refunded: oklch(0.645 0.18 16.5); /* rose */
+  /* Operational status — vivid. */
+  --status-free: oklch(0.6 0.13 155); /* calm green */
+  --status-progress: oklch(0.53 0.205 257); /* accent blue */
+  --status-queued: oklch(0.72 0.15 70); /* amber */
+  --status-done: oklch(0.58 0.06 200); /* muted teal/slate */
+  --status-cancelled: oklch(0.62 0.16 18); /* soft rose */
+  /* Payment status — vivid. */
+  --pay-unpaid: oklch(0.72 0.15 70); /* amber */
+  --pay-paid: oklch(0.6 0.13 155); /* green */
+  --pay-credit: oklch(0.56 0.16 300); /* violet */
+  --pay-refunded: oklch(0.62 0.16 18); /* rose */
+
+  /* Status tones — pill tint (bg) + label ink (fg). */
+  --tone-green-bg: oklch(0.955 0.03 158);
+  --tone-green-fg: oklch(0.42 0.1 158);
+  --tone-blue-bg: oklch(0.955 0.03 257);
+  --tone-blue-fg: oklch(0.44 0.16 257);
+  --tone-amber-bg: oklch(0.957 0.045 80);
+  --tone-amber-fg: oklch(0.45 0.09 65);
+  --tone-slate-bg: oklch(0.955 0.012 220);
+  --tone-slate-fg: oklch(0.42 0.04 220);
+  --tone-rose-bg: oklch(0.955 0.03 18);
+  --tone-rose-fg: oklch(0.46 0.15 18);
+  --tone-violet-bg: oklch(0.955 0.03 300);
+  --tone-violet-fg: oklch(0.45 0.15 300);
 
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-primary: oklch(0.596 0.122 163.225);
-  --sidebar-primary-foreground: oklch(0.985 0.002 165);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.596 0.122 163.225);
+  --sidebar-foreground: oklch(0.23 0.02 264);
+  --sidebar-primary: oklch(0.53 0.205 257);
+  --sidebar-primary-foreground: oklch(0.985 0.005 247);
+  --sidebar-accent: oklch(0.967 0.006 256);
+  --sidebar-accent-foreground: oklch(0.27 0.02 264);
+  --sidebar-border: oklch(0.922 0.01 256);
+  --sidebar-ring: oklch(0.53 0.205 257);
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823); /* zinc-950 */
-  --foreground: oklch(0.985 0.001 286.375);
-  --card: oklch(0.21 0.006 285.885); /* zinc-900 */
-  --card-foreground: oklch(0.985 0.001 286.375);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0.001 286.375);
+  --background: oklch(0.18 0.015 264); /* deep cool slate */
+  --foreground: oklch(0.97 0.005 247);
+  --card: oklch(0.215 0.018 264); /* lifts above the canvas */
+  --card-foreground: oklch(0.97 0.005 247);
+  --popover: oklch(0.215 0.018 264);
+  --popover-foreground: oklch(0.97 0.005 247);
 
-  --primary: oklch(0.696 0.13 162.48); /* emerald-500 */
-  --primary-foreground: oklch(0.18 0.02 165);
+  --primary: oklch(0.62 0.19 256);
+  --primary-foreground: oklch(0.16 0.02 264);
 
-  --secondary: oklch(0.274 0.006 286.033); /* zinc-800 */
-  --secondary-foreground: oklch(0.985 0.001 286.375);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067); /* zinc-400 */
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0.001 286.375);
-  --destructive: oklch(0.704 0.191 22.216);
+  --secondary: oklch(0.27 0.02 264);
+  --secondary-foreground: oklch(0.97 0.005 247);
+  --muted: oklch(0.27 0.02 264);
+  --muted-foreground: oklch(0.7 0.02 257);
+  --accent: oklch(0.27 0.02 264);
+  --accent-foreground: oklch(0.97 0.005 247);
+  --destructive: oklch(0.7 0.19 22);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.696 0.13 162.48);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.62 0.19 256);
 
-  --status-free: oklch(0.705 0.015 286.067);
-  --status-progress: oklch(0.696 0.13 162.48);
-  --status-queued: oklch(0.828 0.149 84);
-  --status-done: oklch(0.696 0.13 162.48);
-  --status-cancelled: oklch(0.552 0.016 285.938);
-  --pay-unpaid: oklch(0.828 0.149 84);
-  --pay-paid: oklch(0.696 0.13 162.48);
-  --pay-credit: oklch(0.7 0.11 300);
-  --pay-refunded: oklch(0.712 0.176 16.5);
+  --status-free: oklch(0.72 0.15 158);
+  --status-progress: oklch(0.66 0.18 256);
+  --status-queued: oklch(0.8 0.15 80);
+  --status-done: oklch(0.7 0.07 200);
+  --status-cancelled: oklch(0.7 0.15 18);
+  --pay-unpaid: oklch(0.8 0.15 80);
+  --pay-paid: oklch(0.72 0.15 158);
+  --pay-credit: oklch(0.7 0.15 300);
+  --pay-refunded: oklch(0.7 0.15 18);
 
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0.001 286.375);
-  --sidebar-primary: oklch(0.696 0.13 162.48);
-  --sidebar-primary-foreground: oklch(0.18 0.02 165);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0.001 286.375);
+  --tone-green-bg: oklch(0.32 0.06 158);
+  --tone-green-fg: oklch(0.84 0.12 158);
+  --tone-blue-bg: oklch(0.32 0.08 257);
+  --tone-blue-fg: oklch(0.84 0.1 257);
+  --tone-amber-bg: oklch(0.34 0.06 75);
+  --tone-amber-fg: oklch(0.86 0.12 80);
+  --tone-slate-bg: oklch(0.32 0.02 220);
+  --tone-slate-fg: oklch(0.82 0.03 220);
+  --tone-rose-bg: oklch(0.33 0.07 18);
+  --tone-rose-fg: oklch(0.84 0.12 18);
+  --tone-violet-bg: oklch(0.33 0.07 300);
+  --tone-violet-fg: oklch(0.84 0.12 300);
+
+  --sidebar: oklch(0.215 0.018 264);
+  --sidebar-foreground: oklch(0.97 0.005 247);
+  --sidebar-primary: oklch(0.62 0.19 256);
+  --sidebar-primary-foreground: oklch(0.16 0.02 264);
+  --sidebar-accent: oklch(0.27 0.02 264);
+  --sidebar-accent-foreground: oklch(0.97 0.005 247);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.696 0.13 162.48);
+  --sidebar-ring: oklch(0.62 0.19 256);
 }
 
 @layer base {

@@ -2,13 +2,13 @@ import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-/** Elevated surface — rounded-xl per docs/UI.md; shadow only to communicate hierarchy. */
+/** Elevated surface — rounded-2xl per docs/UI.md; shadow communicates hierarchy. */
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col rounded-xl border shadow-sm",
+        "bg-card text-card-foreground flex flex-col rounded-2xl border shadow-sm",
         className,
       )}
       {...props}

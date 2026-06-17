@@ -42,8 +42,9 @@ export const PAYMENT_STATUS_TONE: Record<PaymentStatus, StatusTone> = {
 };
 
 /**
- * Tone → dot color class. Literal class strings (not built dynamically) so
- * Tailwind keeps them. Status is shown as dot + label, never color alone.
+ * Tone → vivid dot color class (also used for the bay accent bar). Literal class
+ * strings (not built dynamically) so Tailwind keeps them. Status is shown as
+ * dot + label, never color alone.
  */
 export const TONE_DOT_CLASS: Record<StatusTone, string> = {
   free: "bg-status-free",
@@ -56,3 +57,23 @@ export const TONE_DOT_CLASS: Record<StatusTone, string> = {
   "pay-credit": "bg-pay-credit",
   "pay-refunded": "bg-pay-refunded",
 };
+
+/**
+ * Tone → tinted-pill classes (soft background + AA-legible label ink). Several
+ * tones share a color family (e.g. unpaid reuses amber, paid reuses green), so
+ * they resolve to the same tone tokens. Literal strings keep Tailwind happy.
+ */
+export const TONE_PILL_CLASS: Record<StatusTone, string> = {
+  free: "bg-tone-green-bg text-tone-green-fg",
+  progress: "bg-tone-blue-bg text-tone-blue-fg",
+  queued: "bg-tone-amber-bg text-tone-amber-fg",
+  done: "bg-tone-slate-bg text-tone-slate-fg",
+  cancelled: "bg-tone-rose-bg text-tone-rose-fg",
+  "pay-unpaid": "bg-tone-amber-bg text-tone-amber-fg",
+  "pay-paid": "bg-tone-green-bg text-tone-green-fg",
+  "pay-credit": "bg-tone-violet-bg text-tone-violet-fg",
+  "pay-refunded": "bg-tone-rose-bg text-tone-rose-fg",
+};
+
+/** Tone → vivid solid class for the bay's left accent bar. */
+export const TONE_BAR_CLASS: Record<StatusTone, string> = TONE_DOT_CLASS;
