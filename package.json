@@ -21,7 +21,9 @@
     "lint:api": "uv run --directory apps/api ruff check .",
     "format:api:check": "uv run --directory apps/api ruff format --check .",
     "typecheck:api": "uv run --directory apps/api mypy",
-    "test:api": "uv run --directory apps/api pytest"
+    "test:api": "uv run --directory apps/api pytest",
+    "openapi:export": "uv run --directory apps/api python -m app.export_openapi > packages/shared/openapi/schema.json",
+    "openapi:generate": "pnpm run openapi:export && pnpm --filter @carswash/shared run generate:types"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",

@@ -1,10 +1,14 @@
 /**
  * @carswash/shared
  *
- * Future home of the generated OpenAPI client and shared enums/constants.
- * The web app consumes API types from here; they are generated from the
- * FastAPI OpenAPI schema (Phase 3), never hand-written.
+ * The generated OpenAPI client and shared enums/constants. API types are
+ * generated from the FastAPI OpenAPI schema (`pnpm run openapi:generate` at the
+ * repo root), never hand-written.
  */
 
-/** Placeholder export until the generated client and shared constants land. */
+export type { ApiClient, CarWash, MeResponse, Role } from "./api/client";
+export { createApiClient } from "./api/client";
+export type { components, paths } from "./api/schema";
+
+/** Package marker (kept for compatibility / quick smoke checks). */
 export const PACKAGE_NAME = "@carswash/shared";

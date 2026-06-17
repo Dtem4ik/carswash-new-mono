@@ -14,7 +14,9 @@
       "!**/dist",
       "!**/build",
       "!**/.venv",
-      "!pnpm-lock.yaml"
+      "!pnpm-lock.yaml",
+      "!packages/shared/src/api/schema.ts",
+      "!packages/shared/openapi/schema.json"
     ]
   },
   "formatter": {
