@@ -49,9 +49,22 @@
     "queueEmpty": "Кезек бос",
     "queueCount": "{count, plural, one {кезекте #} other {кезекте #}}",
     "orderNumber": "Тапсырыс №{number}",
+    "orderNumberShort": "№{number}",
     "total": "Сома",
     "plateUnknown": "Нөмірсіз",
-    "activeOrder": "Ағымдағы тапсырыс"
+    "activeOrder": "Ағымдағы тапсырыс",
+    "contextLabel": "Тақта қорытындысы",
+    "shiftLabel": "Ауысым",
+    "shiftOpen": "Ашық",
+    "shiftClosed": "Жабық",
+    "shiftSince": "{time} бастап",
+    "baysLabel": "Бокстар",
+    "baysValue": "{busy} / {total}",
+    "queueLabel": "Кезекте",
+    "newOrder": "Жаңа тапсырыс",
+    "freeHint": "Бокс бос",
+    "elapsedShort": "{minutes} мин",
+    "elapsedLong": "{hours} сағ {minutes} мин"
   },
   "orderStatus": {
     "queued": "Кезекте",

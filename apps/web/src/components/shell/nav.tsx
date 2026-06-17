@@ -44,7 +44,7 @@ export function Nav({ onNavigate }: { onNavigate?: () => void }) {
             <span
               key={item.key}
               aria-disabled="true"
-              className="text-muted-foreground/55 flex min-h-11 cursor-not-allowed items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium select-none"
+              className="text-muted-foreground/55 flex min-h-11 cursor-not-allowed items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium select-none"
             >
               <span className="flex items-center gap-3">
                 <Icon size={18} weight="regular" />
@@ -64,13 +64,17 @@ export function Nav({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               active
-                ? "bg-secondary text-foreground"
+                ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <Icon size={18} weight={active ? "fill" : "regular"} />
+            <Icon
+              size={18}
+              weight={active ? "fill" : "regular"}
+              className={active ? "text-primary" : undefined}
+            />
             {t(item.key)}
           </Link>
         );

@@ -6,6 +6,7 @@ import { useApiClient } from "@/lib/api-client";
 
 export type Box = components["schemas"]["BoxOut"];
 export type Order = components["schemas"]["OrderOut"];
+export type Shift = components["schemas"]["ShiftOut"];
 
 /** Boxes for the active car wash. */
 export function useBoxes(carWashId: string | null) {
@@ -42,6 +43,23 @@ export function useActiveOrders(carWashId: string | null) {
       if (inProgress.error) throw inProgress.error;
       if (queued.error) throw queued.error;
       return [...inProgress.data.items, ...queued.data.items];
+    },
+  });
+}
+
+/**
+ * The current (open) shift for the active car wash, or `null` when none is open.
+ * Feeds the board context strip (open/closed + opened time); read-only here.
+ */
+export function useCurrentShift(carWashId: string | null) {
+  const client = useApiClient(carWashId);
+  return useQuery({
+    queryKey: ["shift", "current", carWashId],
+    enabled: carWashId != null,
+    queryFn: async (): Promise<Shift | null> => {
+      const { data, error } = await client.GET("/shifts/current", {});
+      if (error) throw error;
+      return data;
     },
   });
 }
