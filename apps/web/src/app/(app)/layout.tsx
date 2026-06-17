@@ -30,6 +30,11 @@ export default async function AppLayout({
     ? await fetchMe(session.access_token, activeCarWash)
     : null;
 
+  // shadcn persists the sidebar state in the `sidebar_state` cookie; read it
+  // here so the server renders the right width and there is no flash on reload.
+  const defaultSidebarOpen =
+    cookieStore.get("sidebar_state")?.value !== "false";
+
   if (!me) {
     const t = await getTranslations("shell");
     return (
@@ -43,7 +48,7 @@ export default async function AppLayout({
 
   return (
     <Providers me={me} userEmail={user.email ?? null}>
-      <AppShell>{children}</AppShell>
+      <AppShell defaultSidebarOpen={defaultSidebarOpen}>{children}</AppShell>
     </Providers>
   );
 }
