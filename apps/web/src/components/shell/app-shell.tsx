@@ -1,6 +1,6 @@
 "use client";
 
-import { List, X } from "@phosphor-icons/react";
+import { Drop, List, X } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useState } from "react";
 import { CarWashSwitcher } from "@/components/car-wash-switcher";
@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
-      <header className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-30 border-b backdrop-blur">
+      <header className="bg-card/85 supports-[backdrop-filter]:bg-card/70 sticky top-0 z-30 border-b backdrop-blur">
         <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
           <Button
             variant="ghost"
@@ -39,13 +39,21 @@ export function AppShell({ children }: { children: ReactNode }) {
             <List size={20} />
           </Button>
 
-          <div className="flex min-w-0 flex-col leading-tight">
-            <span className="text-base font-semibold tracking-tight">
-              {tApp("name")}
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span
+              aria-hidden="true"
+              className="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-xl shadow-sm"
+            >
+              <Drop size={20} weight="fill" />
             </span>
-            <span className="text-muted-foreground truncate text-xs">
-              {me.organization.name}
-            </span>
+            <div className="flex min-w-0 flex-col leading-tight">
+              <span className="text-base font-semibold tracking-tight">
+                {tApp("name")}
+              </span>
+              <span className="text-muted-foreground truncate text-xs">
+                {me.organization.name}
+              </span>
+            </div>
           </div>
 
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
@@ -96,8 +104,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
           <div className="bg-background absolute inset-y-0 left-0 flex w-72 max-w-[80vw] flex-col gap-4 border-r p-4 shadow-md">
             <div className="flex items-center justify-between">
-              <span className="text-base font-semibold tracking-tight">
-                {tApp("name")}
+              <span className="flex items-center gap-2.5">
+                <span
+                  aria-hidden="true"
+                  className="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-xl shadow-sm"
+                >
+                  <Drop size={20} weight="fill" />
+                </span>
+                <span className="text-base font-semibold tracking-tight">
+                  {tApp("name")}
+                </span>
               </span>
               <Button
                 variant="ghost"

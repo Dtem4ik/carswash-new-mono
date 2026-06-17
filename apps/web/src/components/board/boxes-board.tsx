@@ -1,12 +1,18 @@
 "use client";
 
-import { Warning } from "@phosphor-icons/react";
+import { Garage, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { BoardContextStrip } from "@/components/board/board-context-strip";
 import { BoardSkeleton } from "@/components/board/board-skeleton";
 import { BoxCard } from "@/components/board/box-card";
 import { Button } from "@/components/ui/button";
-import { type Order, useActiveOrders, useBoxes } from "@/hooks/use-board-data";
+import {
+  type Order,
+  useActiveOrders,
+  useBoxes,
+  useCurrentShift,
+} from "@/hooks/use-board-data";
 import { useRealtimeBoard } from "@/hooks/use-realtime-board";
 import { extractErrorCode, resolveErrorMessage } from "@/lib/errors";
 import { useTenant } from "@/lib/tenant-context";
@@ -23,6 +29,7 @@ export function BoxesBoard() {
 
   const boxesQuery = useBoxes(carWashId);
   const ordersQuery = useActiveOrders(carWashId);
+  const shiftQuery = useCurrentShift(carWashId);
   useRealtimeBoard(carWashId);
 
   const tBoard = useTranslations("board");
@@ -62,7 +69,7 @@ export function BoxesBoard() {
     return (
       <div
         role="alert"
-        className="border-destructive/30 bg-destructive/5 text-destructive flex flex-col items-start gap-3 rounded-xl border p-5 text-sm"
+        className="border-destructive/30 bg-destructive/5 text-destructive flex flex-col items-start gap-3 rounded-2xl border p-5 text-sm"
       >
         <div className="flex items-center gap-2 font-medium">
           <Warning size={18} weight="fill" aria-hidden="true" />
@@ -76,6 +83,7 @@ export function BoxesBoard() {
           onClick={() => {
             boxesQuery.refetch();
             ordersQuery.refetch();
+            shiftQuery.refetch();
           }}
         >
           {tCommon("retry")}
@@ -89,30 +97,54 @@ export function BoxesBoard() {
     return <EmptyState title={tBoard("empty")} hint={tBoard("emptyHint")} />;
   }
 
+  const busy = boxes.filter((box) => box.status === "busy").length;
+  const queued = (ordersQuery.data ?? []).filter(
+    (order) => order.status === "queued",
+  ).length;
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {boxes.map((box) => {
-        const entry = ordersByBox.get(box.id);
-        return (
-          <BoxCard
-            key={box.id}
-            box={box}
-            activeOrder={entry?.active ?? null}
-            queue={entry?.queue ?? []}
-            currency={activeCarWash.currency}
-            timeZone={activeCarWash.timezone}
-          />
-        );
-      })}
+    <div className="space-y-5">
+      <BoardContextStrip
+        shift={shiftQuery.data}
+        shiftPending={shiftQuery.isPending}
+        busy={busy}
+        total={boxes.length}
+        queued={queued}
+        timeZone={activeCarWash.timezone}
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {boxes.map((box) => {
+          const entry = ordersByBox.get(box.id);
+          return (
+            <BoxCard
+              key={box.id}
+              box={box}
+              activeOrder={entry?.active ?? null}
+              queue={entry?.queue ?? []}
+              currency={activeCarWash.currency}
+              timeZone={activeCarWash.timezone}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 function EmptyState({ title, hint }: { title: string; hint: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed p-12 text-center">
-      <p className="font-medium">{title}</p>
-      <p className="text-muted-foreground max-w-sm text-sm">{hint}</p>
+    <div className="bg-card flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-12 text-center shadow-sm">
+      <span
+        aria-hidden="true"
+        className="bg-muted text-muted-foreground flex size-12 items-center justify-center rounded-2xl"
+      >
+        <Garage size={24} weight="regular" />
+      </span>
+      <div className="space-y-1">
+        <p className="font-medium">{title}</p>
+        <p className="text-muted-foreground mx-auto max-w-sm text-sm">{hint}</p>
+      </div>
     </div>
   );
 }

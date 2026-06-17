@@ -49,9 +49,22 @@
     "queueEmpty": "Queue is empty",
     "queueCount": "{count, plural, one {# in queue} other {# in queue}}",
     "orderNumber": "Order #{number}",
+    "orderNumberShort": "#{number}",
     "total": "Total",
     "plateUnknown": "No plate",
-    "activeOrder": "Active order"
+    "activeOrder": "Active order",
+    "contextLabel": "Board summary",
+    "shiftLabel": "Shift",
+    "shiftOpen": "Open",
+    "shiftClosed": "Closed",
+    "shiftSince": "since {time}",
+    "baysLabel": "Bays",
+    "baysValue": "{busy} / {total}",
+    "queueLabel": "In queue",
+    "newOrder": "New order",
+    "freeHint": "Bay available",
+    "elapsedShort": "{minutes} min",
+    "elapsedLong": "{hours} h {minutes} min"
   },
   "orderStatus": {
     "queued": "Queued",

@@ -49,9 +49,22 @@
     "queueEmpty": "Очередь пуста",
     "queueCount": "{count, plural, one {# в очереди} few {# в очереди} many {# в очереди} other {# в очереди}}",
     "orderNumber": "Заказ №{number}",
+    "orderNumberShort": "№{number}",
     "total": "Сумма",
     "plateUnknown": "Без номера",
-    "activeOrder": "Текущий заказ"
+    "activeOrder": "Текущий заказ",
+    "contextLabel": "Сводка по табло",
+    "shiftLabel": "Смена",
+    "shiftOpen": "Открыта",
+    "shiftClosed": "Закрыта",
+    "shiftSince": "с {time}",
+    "baysLabel": "Боксы",
+    "baysValue": "{busy} / {total}",
+    "queueLabel": "В очереди",
+    "newOrder": "Новый заказ",
+    "freeHint": "Бокс свободен",
+    "elapsedShort": "{minutes} мин",
+    "elapsedLong": "{hours} ч {minutes} мин"
   },
   "orderStatus": {
     "queued": "В очереди",
