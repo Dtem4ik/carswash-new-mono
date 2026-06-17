@@ -18,6 +18,7 @@
     "typecheck:web": "pnpm --filter web exec tsc --noEmit",
     "typecheck:shared": "pnpm --filter @carswash/shared exec tsc --noEmit",
     "typecheck": "pnpm run typecheck:web && pnpm run typecheck:shared",
+    "test:web": "pnpm --filter web test",
     "lint:api": "uv run --directory apps/api ruff check .",
     "format:api:check": "uv run --directory apps/api ruff format --check .",
     "typecheck:api": "uv run --directory apps/api mypy",
