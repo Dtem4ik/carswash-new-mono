@@ -196,6 +196,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Orders */
+        get: operations["list_orders_orders_get"];
+        put?: never;
+        /** Create Order */
+        post: operations["create_order_orders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{order_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Order */
+        get: operations["get_order_orders__order_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{order_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Order */
+        post: operations["cancel_order_orders__order_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{order_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close Order */
+        post: operations["close_order_orders__order_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{order_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Payments */
+        get: operations["list_payments_orders__order_id__payments_get"];
+        put?: never;
+        /** Record Payment */
+        post: operations["record_payment_orders__order_id__payments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/package-prices": {
         parameters: {
             query?: never;
@@ -353,6 +440,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/shifts/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close Shift */
+        post: operations["close_shift_shifts_close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/shifts/current": {
         parameters: {
             query?: never;
@@ -364,6 +468,23 @@ export interface paths {
         get: operations["current_shift_shifts_current_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shifts/current/cash-movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Cash Movement */
+        post: operations["record_cash_movement_shifts_current_cash_movements_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -499,6 +620,51 @@ export interface components {
             /** Timezone */
             timezone: string;
         };
+        /** CashMovementCreate */
+        CashMovementCreate: {
+            /** Amount Minor */
+            amount_minor: number;
+            /** Payee User Id */
+            payee_user_id?: string | null;
+            /** Reason */
+            reason?: string | null;
+            type: components["schemas"]["CashMovementType"];
+        };
+        /** CashMovementOut */
+        CashMovementOut: {
+            /** Amount Minor */
+            amount_minor: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Created By
+             * Format: uuid
+             */
+            created_by: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Payee User Id */
+            payee_user_id: string | null;
+            /** Reason */
+            reason: string | null;
+            /**
+             * Shift Id
+             * Format: uuid
+             */
+            shift_id: string;
+            type: components["schemas"]["CashMovementType"];
+        };
+        /**
+         * CashMovementType
+         * @enum {string}
+         */
+        CashMovementType: "expense" | "payout" | "collection" | "deposit";
         /**
          * ClientKind
          * @enum {string}
@@ -517,10 +683,40 @@ export interface components {
             /** Phone */
             phone: string | null;
         };
+        /** DiscountIn */
+        DiscountIn: {
+            /** Amount Minor */
+            amount_minor: number;
+            /** @default manual */
+            type: components["schemas"]["DiscountType"];
+        };
+        /**
+         * DiscountType
+         * @enum {string}
+         */
+        DiscountType: "none" | "manual" | "loyalty" | "promo" | "subscription";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * IntakeIn
+         * @description Registered intake (name/phone present → upsert) or walk-in (plate only).
+         */
+        IntakeIn: {
+            /** Brand */
+            brand?: string | null;
+            /** @default walkin */
+            client_kind: components["schemas"]["ClientKind"];
+            /** Client Name */
+            client_name?: string | null;
+            /** Client Phone */
+            client_phone?: string | null;
+            /** Model */
+            model?: string | null;
+            /** Plate */
+            plate?: string | null;
         };
         /** MeResponse */
         MeResponse: {
@@ -539,6 +735,229 @@ export interface components {
          * @enum {string}
          */
         MembershipRole: "owner" | "org_admin" | "manager" | "washer";
+        /** OrderCreate */
+        OrderCreate: {
+            /**
+             * Box Id
+             * Format: uuid
+             */
+            box_id: string;
+            /**
+             * Car Type Id
+             * Format: uuid
+             */
+            car_type_id: string;
+            /** Client Car Id */
+            client_car_id?: string | null;
+            discount?: components["schemas"]["DiscountIn"] | null;
+            intake?: components["schemas"]["IntakeIn"] | null;
+            /** Package Id */
+            package_id?: string | null;
+            /**
+             * Services
+             * @default []
+             */
+            services: components["schemas"]["OrderServiceIn"][];
+            /**
+             * Washer User Ids
+             * @default []
+             */
+            washer_user_ids: string[];
+        };
+        /** OrderDetailOut */
+        OrderDetailOut: {
+            /** Balance Minor */
+            balance_minor: number;
+            /**
+             * Box Id
+             * Format: uuid
+             */
+            box_id: string;
+            /**
+             * Car Type Id
+             * Format: uuid
+             */
+            car_type_id: string;
+            /**
+             * Car Wash Id
+             * Format: uuid
+             */
+            car_wash_id: string;
+            /** Client Car Id */
+            client_car_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Created By
+             * Format: uuid
+             */
+            created_by: string;
+            /** Currency */
+            currency: string;
+            /** Discount Amount Minor */
+            discount_amount_minor: number;
+            discount_type: components["schemas"]["DiscountType"];
+            /** Finished At */
+            finished_at: string | null;
+            /** Finished By */
+            finished_by: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: number;
+            /** Package Id */
+            package_id: string | null;
+            /** Paid Total Minor */
+            paid_total_minor: number;
+            payment_status: components["schemas"]["OrderPaymentStatus"];
+            /** Payments */
+            payments: components["schemas"]["PaymentOut"][];
+            /** Plate */
+            plate: string | null;
+            /** Services */
+            services: components["schemas"]["OrderServiceOut"][];
+            /**
+             * Shift Id
+             * Format: uuid
+             */
+            shift_id: string;
+            /** Started At */
+            started_at: string | null;
+            status: components["schemas"]["OrderStatus"];
+            /** Subtotal Minor */
+            subtotal_minor: number;
+            /** Total Minor */
+            total_minor: number;
+            /** Washers */
+            washers: components["schemas"]["OrderWasherOut"][];
+        };
+        /** OrderOut */
+        OrderOut: {
+            /**
+             * Box Id
+             * Format: uuid
+             */
+            box_id: string;
+            /**
+             * Car Type Id
+             * Format: uuid
+             */
+            car_type_id: string;
+            /**
+             * Car Wash Id
+             * Format: uuid
+             */
+            car_wash_id: string;
+            /** Client Car Id */
+            client_car_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Created By
+             * Format: uuid
+             */
+            created_by: string;
+            /** Currency */
+            currency: string;
+            /** Discount Amount Minor */
+            discount_amount_minor: number;
+            discount_type: components["schemas"]["DiscountType"];
+            /** Finished At */
+            finished_at: string | null;
+            /** Finished By */
+            finished_by: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: number;
+            /** Package Id */
+            package_id: string | null;
+            payment_status: components["schemas"]["OrderPaymentStatus"];
+            /** Plate */
+            plate: string | null;
+            /**
+             * Shift Id
+             * Format: uuid
+             */
+            shift_id: string;
+            /** Started At */
+            started_at: string | null;
+            status: components["schemas"]["OrderStatus"];
+            /** Subtotal Minor */
+            subtotal_minor: number;
+            /** Total Minor */
+            total_minor: number;
+        };
+        /** OrderPage */
+        OrderPage: {
+            /** Items */
+            items: components["schemas"]["OrderOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * OrderPaymentStatus
+         * @enum {string}
+         */
+        OrderPaymentStatus: "unpaid" | "partial" | "paid" | "credit" | "refunded";
+        /** OrderServiceIn */
+        OrderServiceIn: {
+            /**
+             * Qty
+             * @default 1
+             */
+            qty: number;
+            /**
+             * Service Id
+             * Format: uuid
+             */
+            service_id: string;
+        };
+        /** OrderServiceOut */
+        OrderServiceOut: {
+            /** Qty */
+            qty: number;
+            /**
+             * Service Id
+             * Format: uuid
+             */
+            service_id: string;
+            /** Unit Amount Minor */
+            unit_amount_minor: number;
+        };
+        /**
+         * OrderStatus
+         * @enum {string}
+         */
+        OrderStatus: "queued" | "in_progress" | "done" | "cancelled";
+        /** OrderWasherOut */
+        OrderWasherOut: {
+            /** Earned Amount Minor */
+            earned_amount_minor: number;
+            /** Share Bps */
+            share_bps: number;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
         /** OrganizationOut */
         OrganizationOut: {
             /** Default Currency */
@@ -622,6 +1041,45 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** PaymentCreate */
+        PaymentCreate: {
+            /** Amount Minor */
+            amount_minor: number;
+            /** @default payment */
+            kind: components["schemas"]["PaymentKind"];
+            method: components["schemas"]["PaymentMethod"];
+        };
+        /**
+         * PaymentKind
+         * @enum {string}
+         */
+        PaymentKind: "payment" | "refund";
+        /**
+         * PaymentMethod
+         * @enum {string}
+         */
+        PaymentMethod: "cash" | "card" | "transfer" | "bonus";
+        /** PaymentOut */
+        PaymentOut: {
+            /** Amount Minor */
+            amount_minor: number;
+            /** Currency */
+            currency: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["PaymentKind"];
+            method: components["schemas"]["PaymentMethod"];
+            /**
+             * Paid At
+             * Format: date-time
+             */
+            paid_at: string;
+            /** Received By */
+            received_by: string | null;
+        };
         /** ProfileOut */
         ProfileOut: {
             /** Full Name */
@@ -696,6 +1154,21 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** ShiftClose */
+        ShiftClose: {
+            /** Counted Cash Minor */
+            counted_cash_minor: number;
+        };
+        /** ShiftCloseOut */
+        ShiftCloseOut: {
+            /** Counted Minor */
+            counted_minor: number;
+            /** Expected Minor */
+            expected_minor: number;
+            shift: components["schemas"]["ShiftOut"];
+            /** Variance Minor */
+            variance_minor: number;
+        };
         /** ShiftOpen */
         ShiftOpen: {
             /** Opening Float Minor */
@@ -710,6 +1183,12 @@ export interface components {
             car_wash_id: string;
             /** Closed At */
             closed_at: string | null;
+            /** Closed By */
+            closed_by: string | null;
+            /** Closing Expected Minor */
+            closing_expected_minor: number | null;
+            /** Counted Cash Minor */
+            counted_cash_minor: number | null;
             /**
              * Id
              * Format: uuid
@@ -1178,6 +1657,248 @@ export interface operations {
             };
         };
     };
+    list_orders_orders_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["OrderStatus"] | null;
+                box_id?: string | null;
+                created_from?: string | null;
+                created_to?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_order_orders_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_order_orders__order_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_order_orders__order_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_order_orders__order_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_payments_orders__order_id__payments_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_payment_orders__order_id__payments_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_package_prices_package_prices_get: {
         parameters: {
             query?: never;
@@ -1623,6 +2344,41 @@ export interface operations {
             };
         };
     };
+    close_shift_shifts_close_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftClose"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftCloseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     current_shift_shifts_current_get: {
         parameters: {
             query?: never;
@@ -1641,6 +2397,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShiftOut"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_cash_movement_shifts_current_cash_movements_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CashMovementCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashMovementOut"];
                 };
             };
             /** @description Validation Error */
