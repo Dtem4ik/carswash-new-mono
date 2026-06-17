@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
   }
   if (user && isPublic) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/board";
     return NextResponse.redirect(url);
   }
 

@@ -1,9 +1,11 @@
 "use client";
 
 import type { CarWash } from "@carswash/shared";
+import { Storefront } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useTransition } from "react";
 import { setActiveCarWash } from "@/lib/actions";
-import { t } from "@/lib/messages";
 
 interface Props {
   carWashes: CarWash[];
@@ -12,38 +14,53 @@ interface Props {
 
 /**
  * Selects the active car wash. The choice is persisted in a cookie via a server
- * action, which the server reads and forwards to the API as X-Car-Wash-Id.
- * Single-wash users see a fixed label instead of a selector.
+ * action, which the server reads and forwards to the API as X-Car-Wash-Id;
+ * client API calls pick it up from the tenant context. Single-wash users see a
+ * fixed label instead of a selector.
  */
 export function CarWashSwitcher({ carWashes, activeCarWashId }: Props) {
+  const t = useTranslations("shell");
   const router = useRouter();
+  const [pending, startTransition] = useTransition();
 
-  async function onChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    await setActiveCarWash(event.target.value);
-    router.refresh();
+  function onChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const next = event.target.value;
+    startTransition(async () => {
+      await setActiveCarWash(next);
+      router.refresh();
+    });
   }
 
   if (carWashes.length <= 1) {
     const only = carWashes[0];
     return (
-      <span className="flex items-center gap-2 text-sm">
-        <span className="text-muted-foreground">
-          {t("dashboard.activeCarWash")}
-        </span>
+      <span className="flex h-9 items-center gap-2 rounded-md px-1 text-sm">
+        <Storefront
+          size={16}
+          weight="regular"
+          aria-hidden="true"
+          className="text-muted-foreground"
+        />
+        <span className="sr-only">{t("activeCarWash")}</span>
         <span className="font-medium">{only ? only.name : "—"}</span>
       </span>
     );
   }
 
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground">
-        {t("dashboard.activeCarWash")}
-      </span>
+    <label className="relative flex items-center">
+      <Storefront
+        size={16}
+        weight="regular"
+        aria-hidden="true"
+        className="text-muted-foreground pointer-events-none absolute left-2.5"
+      />
+      <span className="sr-only">{t("activeCarWash")}</span>
       <select
         value={activeCarWashId ?? ""}
         onChange={onChange}
-        className="border-input bg-background rounded-md border px-2 py-1 text-sm"
+        disabled={pending}
+        className="border-input bg-background hover:bg-muted focus-visible:ring-ring h-9 cursor-pointer rounded-md border pr-3 pl-8 text-sm font-medium focus-visible:ring-2 focus-visible:outline-none disabled:opacity-60"
       >
         {carWashes.map((cw) => (
           <option key={cw.id} value={cw.id}>

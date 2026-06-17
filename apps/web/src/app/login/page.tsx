@@ -27,7 +27,7 @@ export default function LoginPage() {
       return;
     }
     // Full navigation so the proxy sees the refreshed session cookies.
-    window.location.assign("/");
+    window.location.assign("/board");
   }
 
   return (
