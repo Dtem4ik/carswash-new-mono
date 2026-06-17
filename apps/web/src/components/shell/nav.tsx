@@ -44,13 +44,13 @@ export function Nav({ onNavigate }: { onNavigate?: () => void }) {
             <span
               key={item.key}
               aria-disabled="true"
-              className="text-muted-foreground/55 flex min-h-11 cursor-not-allowed items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium select-none"
+              className="text-muted-foreground/55 flex min-h-11 cursor-not-allowed items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium select-none"
             >
-              <span className="flex items-center gap-3">
-                <Icon size={18} />
-                {t(item.key)}
+              <span className="flex min-w-0 items-center gap-2.5">
+                <Icon size={18} className="shrink-0" />
+                <span className="truncate">{t(item.key)}</span>
               </span>
-              <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase">
+              <span className="bg-muted text-muted-foreground shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase">
                 {t("comingSoon")}
               </span>
             </span>
@@ -64,14 +64,17 @@ export function Nav({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "flex min-h-11 min-w-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               active
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <Icon size={18} className={active ? "text-primary" : undefined} />
-            {t(item.key)}
+            <Icon
+              size={18}
+              className={cn("shrink-0", active && "text-primary")}
+            />
+            <span className="truncate">{t(item.key)}</span>
           </Link>
         );
       })}

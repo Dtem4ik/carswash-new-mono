@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="mx-auto flex w-full max-w-[1400px] flex-1">
-        <aside className="hidden w-60 shrink-0 border-r p-4 lg:block">
+        <aside className="hidden w-72 shrink-0 border-r p-4 lg:block">
           <Nav />
         </aside>
 
