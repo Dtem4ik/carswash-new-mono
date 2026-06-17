@@ -51,6 +51,7 @@ router = APIRouter(tags=["orders"])
 
 _create = require_capability(Capability.ORDERS_CREATE)
 _close = require_capability(Capability.ORDERS_CLOSE)
+_pay = require_capability(Capability.PAYMENTS_RECORD)
 
 
 def _now() -> datetime.datetime:
@@ -156,6 +157,12 @@ class OrderDetailOut(OrderOut):
     payments: list[PaymentOut]
     paid_total_minor: int
     balance_minor: int
+
+
+class PaymentCreate(BaseModel):
+    method: PaymentMethod
+    kind: PaymentKind = PaymentKind.payment
+    amount_minor: int = Field(ge=0)
 
 
 # --- helpers ------------------------------------------------------------------
@@ -628,3 +635,70 @@ async def cancel_order(
 
     await session.commit()
     return await _build_detail(session, order.id, car_wash_id)
+
+
+# --- payments -----------------------------------------------------------------
+
+
+async def _recompute_payment_status(session: AsyncSession, order: Order) -> None:
+    paid, refund = await _payment_totals(session, order.id)
+    net = paid - refund
+    if refund > 0 and net <= 0:
+        order.payment_status = OrderPaymentStatus.refunded
+    elif net <= 0:
+        order.payment_status = (
+            OrderPaymentStatus.credit
+            if await _order_is_corporate(session, order)
+            else OrderPaymentStatus.unpaid
+        )
+    elif net < order.total_minor:
+        order.payment_status = OrderPaymentStatus.partial
+    else:
+        order.payment_status = OrderPaymentStatus.paid
+
+
+@router.post("/orders/{order_id}/payments", response_model=PaymentOut, dependencies=[Depends(_pay)])
+async def record_payment(
+    order_id: uuid.UUID,
+    body: PaymentCreate,
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> Payment:
+    car_wash_id = active_car_wash(ctx)
+    order = await _order_for_update(session, order_id, car_wash_id)
+
+    payment = Payment(
+        order_id=order.id,
+        car_wash_id=car_wash_id,
+        method=body.method,
+        kind=body.kind,
+        amount_minor=body.amount_minor,
+        currency=order.currency,
+        received_by=ctx.user_id,
+        paid_at=_now(),
+    )
+    session.add(payment)
+    await session.flush()
+    await _recompute_payment_status(session, order)
+    await session.commit()
+    await session.refresh(payment)
+    return payment
+
+
+@router.get("/orders/{order_id}/payments", response_model=list[PaymentOut])
+async def list_payments(
+    order_id: uuid.UUID,
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> list[Payment]:
+    car_wash_id = active_car_wash(ctx)
+    order = await session.get(Order, order_id)
+    if order is None or order.car_wash_id != car_wash_id:
+        raise not_found()
+    return list(
+        (
+            await session.execute(
+                select(Payment).where(Payment.order_id == order_id).order_by(Payment.paid_at)
+            )
+        ).scalars()
+    )
