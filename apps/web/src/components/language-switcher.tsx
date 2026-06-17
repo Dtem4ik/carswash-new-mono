@@ -4,6 +4,13 @@ import { Languages } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useTransition } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { type Locale, localeLabels, locales } from "@/i18n/config";
 import { setLocale } from "@/lib/actions";
 
@@ -14,34 +21,31 @@ export function LanguageSwitcher() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  function onChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const next = event.target.value as Locale;
+  function onValueChange(next: string | null) {
+    if (next == null) return;
     startTransition(async () => {
-      await setLocale(next);
+      await setLocale(next as Locale);
       router.refresh();
     });
   }
 
   return (
-    <label className="relative flex items-center">
-      <Languages
-        size={16}
-        aria-hidden="true"
-        className="text-muted-foreground pointer-events-none absolute left-2.5"
-      />
-      <span className="sr-only">{t("language")}</span>
-      <select
-        value={locale}
-        onChange={onChange}
-        disabled={pending}
-        className="border-input bg-background hover:bg-muted focus-visible:ring-ring h-9 cursor-pointer rounded-md border pr-3 pl-8 text-sm focus-visible:ring-2 focus-visible:outline-none disabled:opacity-60"
-      >
+    <Select value={locale} onValueChange={onValueChange} disabled={pending}>
+      <SelectTrigger className="h-9" aria-label={t("language")}>
+        <Languages
+          size={16}
+          aria-hidden="true"
+          className="text-muted-foreground"
+        />
+        <SelectValue>{(value) => localeLabels[value as Locale]}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
         {locales.map((value) => (
-          <option key={value} value={value}>
+          <SelectItem key={value} value={value}>
             {localeLabels[value]}
-          </option>
+          </SelectItem>
         ))}
-      </select>
-    </label>
+      </SelectContent>
+    </Select>
   );
 }

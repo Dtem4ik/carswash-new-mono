@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -50,9 +51,12 @@ export function Nav({ onNavigate }: { onNavigate?: () => void }) {
                 <Icon size={18} className="shrink-0" />
                 <span className="truncate">{t(item.key)}</span>
               </span>
-              <span className="bg-muted text-muted-foreground shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase">
+              <Badge
+                variant="secondary"
+                className="shrink-0 text-[10px] tracking-wide uppercase"
+              >
                 {t("comingSoon")}
-              </span>
+              </Badge>
             </span>
           );
         }

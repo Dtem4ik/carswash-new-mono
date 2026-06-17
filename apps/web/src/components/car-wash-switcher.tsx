@@ -5,6 +5,13 @@ import { Store } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { setActiveCarWash } from "@/lib/actions";
 
 interface Props {
@@ -23,8 +30,8 @@ export function CarWashSwitcher({ carWashes, activeCarWashId }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  function onChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const next = event.target.value;
+  function onValueChange(next: string | null) {
+    if (next == null) return;
     startTransition(async () => {
       await setActiveCarWash(next);
       router.refresh();
@@ -34,7 +41,7 @@ export function CarWashSwitcher({ carWashes, activeCarWashId }: Props) {
   if (carWashes.length <= 1) {
     const only = carWashes[0];
     return (
-      <span className="flex h-9 items-center gap-2 rounded-md px-1 text-sm">
+      <span className="flex h-9 items-center gap-2 rounded-lg px-1 text-sm">
         <Store size={16} aria-hidden="true" className="text-muted-foreground" />
         <span className="sr-only">{t("activeCarWash")}</span>
         <span className="font-medium">{only ? only.name : "—"}</span>
@@ -43,25 +50,24 @@ export function CarWashSwitcher({ carWashes, activeCarWashId }: Props) {
   }
 
   return (
-    <label className="relative flex items-center">
-      <Store
-        size={16}
-        aria-hidden="true"
-        className="text-muted-foreground pointer-events-none absolute left-2.5"
-      />
-      <span className="sr-only">{t("activeCarWash")}</span>
-      <select
-        value={activeCarWashId ?? ""}
-        onChange={onChange}
-        disabled={pending}
-        className="border-input bg-background hover:bg-muted focus-visible:ring-ring h-9 cursor-pointer rounded-md border pr-3 pl-8 text-sm font-medium focus-visible:ring-2 focus-visible:outline-none disabled:opacity-60"
-      >
+    <Select
+      value={activeCarWashId ?? ""}
+      onValueChange={onValueChange}
+      disabled={pending}
+    >
+      <SelectTrigger className="h-9" aria-label={t("activeCarWash")}>
+        <Store size={16} aria-hidden="true" className="text-muted-foreground" />
+        <SelectValue>
+          {(value) => carWashes.find((cw) => cw.id === value)?.name ?? "—"}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
         {carWashes.map((cw) => (
-          <option key={cw.id} value={cw.id}>
+          <SelectItem key={cw.id} value={cw.id}>
             {cw.name}
-          </option>
+          </SelectItem>
         ))}
-      </select>
-    </label>
+      </SelectContent>
+    </Select>
   );
 }
