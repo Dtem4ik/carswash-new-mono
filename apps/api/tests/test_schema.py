@@ -134,9 +134,9 @@ def test_order_washers_link_and_uniqueness() -> None:
             conn.execute(
                 sa.text(
                     "INSERT INTO orders (id, car_wash_id, box_id, shift_id, client_car_id,"
-                    " car_type_id, status, price_amount_minor, currency, created_by)"
-                    " VALUES (:id, :cw, :box, :shift, :cc, :ct, 'queued'::order_status,"
-                    " 200000, 'KZT', :u)"
+                    " car_type_id, number, status, subtotal_minor, total_minor, currency,"
+                    " created_by) VALUES (:id, :cw, :box, :shift, :cc, :ct, 1,"
+                    " 'queued'::order_status, 200000, 200000, 'KZT', :u)"
                 ),
                 {"id": order, "cw": cw, "box": box, "shift": shift, "cc": cc, "ct": ct, "u": u1},
             )
