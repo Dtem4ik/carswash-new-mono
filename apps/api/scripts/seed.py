@@ -16,6 +16,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
+import httpx
 import sqlalchemy as sa
 from sqlalchemy import Table
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -25,10 +26,12 @@ from app.models import (
     Box,
     CarType,
     CarWash,
+    Membership,
     Organization,
     Package,
     PackagePrice,
     PackageService,
+    Profile,
     Service,
     ServicePrice,
 )
@@ -176,6 +179,143 @@ def build_rows() -> dict[Table, list[dict[str, Any]]]:
     }
 
 
+# --- Demo auth users (dev only) ------------------------------------------------
+#
+# Created via the Supabase Auth admin API using the service-role key (never the
+# anon key, never committed). The 0018 trigger creates each user's profile row;
+# we backfill full_name/locale and link memberships. Idempotent: users are looked
+# up by email first, memberships/profiles upserted by deterministic id.
+
+DEMO_PASSWORD = "carswash-demo-2026"  # noqa: S105  (dev-only seed credential)
+
+DEMO_USERS = [
+    {
+        "key": "owner",
+        "email": "owner@carswash-demo.com",
+        "full_name": "Demo Owner",
+        "role": "owner",
+        "scope": "org",
+    },
+    {
+        "key": "manager",
+        "email": "manager@carswash-demo.com",
+        "full_name": "Demo Manager",
+        "role": "manager",
+        "scope": "cw_almaty",
+    },
+    {
+        "key": "washer",
+        "email": "washer@carswash-demo.com",
+        "full_name": "Demo Washer",
+        "role": "washer",
+        "scope": "cw_almaty",
+    },
+]
+
+
+def _admin_base_and_headers() -> tuple[str, dict[str, str]]:
+    base = (settings.supabase_url or "").rstrip("/") + "/auth/v1"
+    key = settings.supabase_service_role_key or ""
+    headers = {
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
+    return base, headers
+
+
+def _find_user_id(
+    client: httpx.Client, base: str, headers: dict[str, str], email: str
+) -> str | None:
+    page = 1
+    while page <= 50:
+        resp = client.get(
+            f"{base}/admin/users", headers=headers, params={"page": page, "per_page": 200}
+        )
+        resp.raise_for_status()
+        users = resp.json().get("users", [])
+        if not users:
+            return None
+        for user in users:
+            if (user.get("email") or "").lower() == email.lower():
+                return str(user["id"])
+        page += 1
+    return None
+
+
+def _ensure_user(
+    client: httpx.Client, base: str, headers: dict[str, str], email: str, full_name: str
+) -> str:
+    existing = _find_user_id(client, base, headers, email)
+    if existing:
+        return existing
+    resp = client.post(
+        f"{base}/admin/users",
+        headers=headers,
+        json={
+            "email": email,
+            "password": DEMO_PASSWORD,
+            "email_confirm": True,
+            "user_metadata": {"full_name": full_name},
+        },
+    )
+    if resp.status_code in (200, 201):
+        return str(resp.json()["id"])
+    # A concurrent/previous run may have created it between list and create.
+    found = _find_user_id(client, base, headers, email)
+    if found:
+        return found
+    resp.raise_for_status()
+    raise RuntimeError(f"could not create or find demo user {email}")
+
+
+def seed_demo_users(engine: sa.Engine) -> list[dict[str, str]] | None:
+    """Create demo owner/manager/washer + memberships. Returns creds for printing."""
+    if not settings.supabase_url or not settings.supabase_service_role_key:
+        print("demo users: skipped (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set)")
+        return None
+
+    org_id = sid("org", "shiny")
+    scope_to_car_wash = {"org": None, "cw_almaty": sid("cw", "almaty")}
+
+    base, headers = _admin_base_and_headers()
+    profile_rows: list[dict[str, Any]] = []
+    membership_rows: list[dict[str, Any]] = []
+    creds: list[dict[str, str]] = []
+
+    with httpx.Client(timeout=15.0) as client:
+        for demo in DEMO_USERS:
+            user_id = _ensure_user(client, base, headers, demo["email"], demo["full_name"])
+            profile_rows.append({"id": user_id, "full_name": demo["full_name"], "locale": "ru"})
+            membership_rows.append(
+                {
+                    "id": sid("membership", demo["email"]),
+                    "user_id": user_id,
+                    "organization_id": org_id,
+                    "car_wash_id": scope_to_car_wash[demo["scope"]],
+                    "role": demo["role"],
+                }
+            )
+            creds.append({"email": demo["email"], "password": DEMO_PASSWORD, "role": demo["role"]})
+
+    with engine.begin() as conn:
+        # Profiles already exist (created by the 0018 trigger); set their details.
+        stmt = pg_insert(Profile.__table__).values(profile_rows)
+        conn.execute(
+            stmt.on_conflict_do_update(
+                index_elements=["id"],
+                set_={"full_name": stmt.excluded.full_name, "locale": stmt.excluded.locale},
+            )
+        )
+        conn.execute(
+            pg_insert(Membership.__table__)
+            .values(membership_rows)
+            .on_conflict_do_nothing(index_elements=["id"])
+        )
+
+    return creds
+
+
 def main() -> None:
     engine = sa.create_engine(_sync_url(), future=True)
     rows_by_table = build_rows()
@@ -188,8 +328,13 @@ def main() -> None:
             table.name: conn.execute(sa.select(sa.func.count()).select_from(table)).scalar()
             for table in rows_by_table
         }
+    creds = seed_demo_users(engine)
     engine.dispose()
     print("seed complete:", counts)
+    if creds:
+        print("\ndemo credentials (dev only — do not commit):")
+        for c in creds:
+            print(f"  {c['role']:8s} {c['email']}  /  {c['password']}")
 
 
 if __name__ == "__main__":
