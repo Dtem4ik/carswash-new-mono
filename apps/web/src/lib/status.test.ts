@@ -3,7 +3,9 @@ import {
   BOX_STATUS_TONE,
   ORDER_STATUS_TONE,
   PAYMENT_STATUS_TONE,
+  TONE_BAR_CLASS,
   TONE_DOT_CLASS,
+  TONE_PILL_CLASS,
 } from "@/lib/status";
 
 describe("status tone maps", () => {
@@ -30,14 +32,22 @@ describe("status tone maps", () => {
     });
   });
 
-  it("every referenced tone has a dot color class", () => {
+  it("every referenced tone has dot, pill, and bar classes", () => {
     const tones = new Set([
       ...Object.values(ORDER_STATUS_TONE),
       ...Object.values(BOX_STATUS_TONE),
       ...Object.values(PAYMENT_STATUS_TONE),
     ]);
     for (const tone of tones) {
+      // A vivid dot/bar fill plus a tinted pill (background + label ink).
       expect(TONE_DOT_CLASS[tone]).toMatch(/^bg-/);
+      expect(TONE_BAR_CLASS[tone]).toMatch(/^bg-/);
+      expect(TONE_PILL_CLASS[tone]).toMatch(/bg-tone-/);
+      expect(TONE_PILL_CLASS[tone]).toMatch(/text-tone-.*-fg/);
     }
+  });
+
+  it("uses the same vivid fill for dots and bay accent bars", () => {
+    expect(TONE_BAR_CLASS).toEqual(TONE_DOT_CLASS);
   });
 });
