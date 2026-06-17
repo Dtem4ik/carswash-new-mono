@@ -7,6 +7,7 @@ import { CarWashSwitcher } from "@/components/car-wash-switcher";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
 import { Nav } from "@/components/shell/nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useTenant } from "@/lib/tenant-context";
 
@@ -64,6 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               />
             </div>
             <LanguageSwitcher />
+            <ThemeToggle />
             <div className="hidden flex-col items-end leading-tight md:flex">
               <span className="max-w-[14rem] truncate text-sm font-medium">
                 {userName}

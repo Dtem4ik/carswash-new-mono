@@ -66,6 +66,32 @@ Each tone resolves to three roles:
 Code → tone mapping is centralized in `src/lib/status.ts`; the badge renders a
 tinted pill in `src/components/status-badge.tsx`. Components never invent colors.
 
+### Theming — light & dark
+
+Both modes are first-class. Theme is managed by **next-themes** with the `class`
+strategy on `<html>`, defaulting to the OS preference (`system`) and persisted;
+the root `<html>` carries `suppressHydrationWarning` so the pre-paint class swap
+never flashes (no FOUC). The header carries a light / dark / system toggle.
+
+EVERY color is a CSS variable defined for **both** `:root` (light) and `.dark` —
+the canvas, ink, accent/primary, borders, popover/card surfaces, AND every status
+tone (vivid `--status-*`/`--pay-*` plus the `--tone-*-bg`/`--tone-*-fg` pill
+pairs). Dark values are tuned so the pill tints and tone inks stay **AA-legible on
+dark surfaces**, not only on light. Never hard-code a color (`#hex`, `rgb()`, or a
+raw Tailwind palette class like `zinc-*`/`emerald-*`) in a component — reference a
+token (`bg-background`, `text-foreground`, `bg-card`, `text-muted-foreground`,
+`border`, `bg-status-*`, `text-tone-*-fg`, …). A theme switch must change nothing
+but the tokens.
+
+### Components — prefer shadcn
+
+Build from **shadcn/ui primitives** wherever one exists (Button, Select, Badge,
+Card, Input, Dialog, DropdownMenu, …); install via the shadcn CLI and theme them
+with our tokens — never ship the stock defaults, never hand-roll a native control
+that a primitive already covers. Bespoke **layout** (e.g. the bay-card
+composition) may stay custom, but only assembled from themed tokens and shadcn
+primitives.
+
 ## Depth & shape
 
 - **Shadows:** soft and layered, tinted toward the ink hue (not flat black). At
