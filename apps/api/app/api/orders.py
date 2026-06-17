@@ -13,7 +13,7 @@ import datetime
 import re
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -159,6 +159,13 @@ class OrderDetailOut(OrderOut):
     balance_minor: int
 
 
+class OrderPage(BaseModel):
+    items: list[OrderOut]
+    total: int
+    limit: int
+    offset: int
+
+
 class PaymentCreate(BaseModel):
     method: PaymentMethod
     kind: PaymentKind = PaymentKind.payment
@@ -166,6 +173,21 @@ class PaymentCreate(BaseModel):
 
 
 # --- helpers ------------------------------------------------------------------
+
+
+async def _order_for_update(
+    session: AsyncSession, order_id: uuid.UUID, car_wash_id: uuid.UUID
+) -> Order:
+    obj = (
+        await session.execute(
+            select(Order)
+            .where(Order.id == order_id, Order.car_wash_id == car_wash_id)
+            .with_for_update()
+        )
+    ).scalar_one_or_none()
+    if obj is None:
+        raise not_found()
+    return obj
 
 
 async def _order_is_corporate(session: AsyncSession, order: Order) -> bool:
@@ -197,6 +219,23 @@ async def _payment_totals(session: AsyncSession, order_id: uuid.UUID) -> tuple[i
         else:
             refund = int(total)
     return paid, refund
+
+
+async def _recompute_payment_status(session: AsyncSession, order: Order) -> None:
+    paid, refund = await _payment_totals(session, order.id)
+    net = paid - refund
+    if refund > 0 and net <= 0:
+        order.payment_status = OrderPaymentStatus.refunded
+    elif net <= 0:
+        order.payment_status = (
+            OrderPaymentStatus.credit
+            if await _order_is_corporate(session, order)
+            else OrderPaymentStatus.unpaid
+        )
+    elif net < order.total_minor:
+        order.payment_status = OrderPaymentStatus.partial
+    else:
+        order.payment_status = OrderPaymentStatus.paid
 
 
 async def _allocate_number(session: AsyncSession, car_wash_id: uuid.UUID) -> int:
@@ -252,64 +291,6 @@ def _to_out(order: Order) -> OrderOut:
         started_at=order.started_at,
         finished_at=order.finished_at,
         created_at=order.created_at,
-    )
-
-
-async def _build_detail(
-    session: AsyncSession, order_id: uuid.UUID, car_wash_id: uuid.UUID
-) -> OrderDetailOut:
-    order = await session.get(Order, order_id)
-    if order is None or order.car_wash_id != car_wash_id:
-        raise not_found()
-    services = list(
-        (
-            await session.execute(select(OrderService).where(OrderService.order_id == order_id))
-        ).scalars()
-    )
-    washers = list(
-        (
-            await session.execute(select(OrderWasher).where(OrderWasher.order_id == order_id))
-        ).scalars()
-    )
-    payments = list(
-        (
-            await session.execute(
-                select(Payment).where(Payment.order_id == order_id).order_by(Payment.paid_at)
-            )
-        ).scalars()
-    )
-    paid, refund = await _payment_totals(session, order_id)
-    paid_total = paid - refund
-
-    base = _to_out(order)
-    return OrderDetailOut(
-        **base.model_dump(),
-        services=[
-            OrderServiceOut(
-                service_id=s.service_id, unit_amount_minor=s.unit_amount_minor, qty=s.qty
-            )
-            for s in services
-        ],
-        washers=[
-            OrderWasherOut(
-                user_id=w.user_id, share_bps=w.share_bps, earned_amount_minor=w.earned_amount_minor
-            )
-            for w in washers
-        ],
-        payments=[
-            PaymentOut(
-                id=p.id,
-                method=p.method,
-                kind=p.kind,
-                amount_minor=p.amount_minor,
-                currency=p.currency,
-                received_by=p.received_by,
-                paid_at=p.paid_at,
-            )
-            for p in payments
-        ],
-        paid_total_minor=paid_total,
-        balance_minor=order.total_minor - paid_total,
     )
 
 
@@ -541,21 +522,6 @@ async def create_order(
 # --- close / cancel -----------------------------------------------------------
 
 
-async def _order_for_update(
-    session: AsyncSession, order_id: uuid.UUID, car_wash_id: uuid.UUID
-) -> Order:
-    obj = (
-        await session.execute(
-            select(Order)
-            .where(Order.id == order_id, Order.car_wash_id == car_wash_id)
-            .with_for_update()
-        )
-    ).scalar_one_or_none()
-    if obj is None:
-        raise not_found()
-    return obj
-
-
 async def _promote_box_queue(session: AsyncSession, box: Box, now: datetime.datetime) -> None:
     """Start the oldest queued order on ``box``, or free the box if none."""
     nxt = (
@@ -640,23 +606,6 @@ async def cancel_order(
 # --- payments -----------------------------------------------------------------
 
 
-async def _recompute_payment_status(session: AsyncSession, order: Order) -> None:
-    paid, refund = await _payment_totals(session, order.id)
-    net = paid - refund
-    if refund > 0 and net <= 0:
-        order.payment_status = OrderPaymentStatus.refunded
-    elif net <= 0:
-        order.payment_status = (
-            OrderPaymentStatus.credit
-            if await _order_is_corporate(session, order)
-            else OrderPaymentStatus.unpaid
-        )
-    elif net < order.total_minor:
-        order.payment_status = OrderPaymentStatus.partial
-    else:
-        order.payment_status = OrderPaymentStatus.paid
-
-
 @router.post("/orders/{order_id}/payments", response_model=PaymentOut, dependencies=[Depends(_pay)])
 async def record_payment(
     order_id: uuid.UUID,
@@ -702,3 +651,110 @@ async def list_payments(
             )
         ).scalars()
     )
+
+
+# --- listing & detail ---------------------------------------------------------
+
+
+@router.get("/orders", response_model=OrderPage)
+async def list_orders(
+    status_filter: OrderStatus | None = Query(default=None, alias="status"),
+    box_id: uuid.UUID | None = None,
+    created_from: datetime.datetime | None = None,
+    created_to: datetime.datetime | None = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> OrderPage:
+    car_wash_id = active_car_wash(ctx)
+    conditions = [Order.car_wash_id == car_wash_id]
+    if status_filter is not None:
+        conditions.append(Order.status == status_filter)
+    if box_id is not None:
+        conditions.append(Order.box_id == box_id)
+    if created_from is not None:
+        conditions.append(Order.created_at >= created_from)
+    if created_to is not None:
+        conditions.append(Order.created_at < created_to)
+
+    total = (
+        await session.execute(select(func.count()).select_from(Order).where(*conditions))
+    ).scalar_one()
+    rows = (
+        await session.execute(
+            select(Order)
+            .where(*conditions)
+            .order_by(Order.number.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+    ).scalars()
+    return OrderPage(items=[_to_out(o) for o in rows], total=int(total), limit=limit, offset=offset)
+
+
+async def _build_detail(
+    session: AsyncSession, order_id: uuid.UUID, car_wash_id: uuid.UUID
+) -> OrderDetailOut:
+    order = await session.get(Order, order_id)
+    if order is None or order.car_wash_id != car_wash_id:
+        raise not_found()
+    services = list(
+        (
+            await session.execute(select(OrderService).where(OrderService.order_id == order_id))
+        ).scalars()
+    )
+    washers = list(
+        (
+            await session.execute(select(OrderWasher).where(OrderWasher.order_id == order_id))
+        ).scalars()
+    )
+    payments = list(
+        (
+            await session.execute(
+                select(Payment).where(Payment.order_id == order_id).order_by(Payment.paid_at)
+            )
+        ).scalars()
+    )
+    paid, refund = await _payment_totals(session, order_id)
+    paid_total = paid - refund
+
+    base = _to_out(order)
+    return OrderDetailOut(
+        **base.model_dump(),
+        services=[
+            OrderServiceOut(
+                service_id=s.service_id, unit_amount_minor=s.unit_amount_minor, qty=s.qty
+            )
+            for s in services
+        ],
+        washers=[
+            OrderWasherOut(
+                user_id=w.user_id, share_bps=w.share_bps, earned_amount_minor=w.earned_amount_minor
+            )
+            for w in washers
+        ],
+        payments=[
+            PaymentOut(
+                id=p.id,
+                method=p.method,
+                kind=p.kind,
+                amount_minor=p.amount_minor,
+                currency=p.currency,
+                received_by=p.received_by,
+                paid_at=p.paid_at,
+            )
+            for p in payments
+        ],
+        paid_total_minor=paid_total,
+        balance_minor=order.total_minor - paid_total,
+    )
+
+
+@router.get("/orders/{order_id}", response_model=OrderDetailOut)
+async def get_order(
+    order_id: uuid.UUID,
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> OrderDetailOut:
+    return await _build_detail(session, order_id, active_car_wash(ctx))
