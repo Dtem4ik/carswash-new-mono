@@ -8,6 +8,7 @@ Database connection strings use the exact names Supabase/Vercel provide:
 ``POSTGRES_URL_NON_POOLING`` (direct, port 5432 — Alembic DDL).
 """
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,9 +25,21 @@ class Settings(BaseSettings):
     postgres_url: str | None = None
     postgres_url_non_pooling: str | None = None
 
+    # Supabase project URL — used to derive the JWKS endpoint and admin API base.
+    # Accepts the SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL env name.
+    supabase_url: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"),
+    )
+
     # Supabase auth secrets (used from Phase 2 onward; never exposed to the web).
+    # HS256 JWT secret (fallback when the project signs symmetrically).
     supabase_jwt_secret: str | None = None
+    # Service-role key — server-side only; used by the seed admin API.
     supabase_service_role_key: str | None = None
+
+    # Expected audience claim on Supabase-issued access tokens.
+    supabase_jwt_audience: str = "authenticated"
 
 
 settings = Settings()
