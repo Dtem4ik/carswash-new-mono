@@ -21,6 +21,8 @@ class Capability:
     PRICING_VIEW = "pricing.view"
     PRICING_EDIT = "pricing.edit"
     CATALOG_MANAGE = "catalog.manage"
+    BOXES_MANAGE = "boxes.manage"
+    SHIFTS_MANAGE = "shifts.manage"
     SHIFTS_OPEN = "shifts.open"
     SHIFTS_CLOSE = "shifts.close"
     CASH_MANAGE = "cash.manage"
@@ -43,6 +45,8 @@ _MANAGER: frozenset[str] = _WASHER | frozenset(
         Capability.PRICING_VIEW,
         Capability.PRICING_EDIT,
         Capability.CATALOG_MANAGE,
+        Capability.BOXES_MANAGE,
+        Capability.SHIFTS_MANAGE,
         Capability.SHIFTS_OPEN,
         Capability.SHIFTS_CLOSE,
         Capability.CASH_MANAGE,
