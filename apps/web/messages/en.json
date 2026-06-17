@@ -30,8 +30,9 @@
     "activeCarWash": "Active car wash",
     "account": "Account",
     "contextUnavailable": "Could not load your working context. Is the API running?",
-    "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "toggleSidebar": "Toggle sidebar",
+    "sidebarLabel": "Sidebar",
+    "sidebarDescription": "Main navigation"
   },
   "theme": {
     "label": "Theme",

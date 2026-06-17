@@ -30,8 +30,9 @@
     "activeCarWash": "Белсенді жуу орны",
     "account": "Аккаунт",
     "contextUnavailable": "Жұмыс контексті жүктелмеді. API іске қосылған ба?",
-    "openMenu": "Мәзірді ашу",
-    "closeMenu": "Мәзірді жабу"
+    "toggleSidebar": "Бүйір панелін ауыстыру",
+    "sidebarLabel": "Бүйір панелі",
+    "sidebarDescription": "Негізгі навигация"
   },
   "theme": {
     "label": "Тақырып",
