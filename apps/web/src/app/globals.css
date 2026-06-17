@@ -4,12 +4,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * CarsWash design system — see docs/UI.md (binding standard).
+ * Neutral base = Zinc. Single accent = Emerald (desaturated, <80% sat).
+ * Custom radii + tinted shadows + status-color semantics. Geist / Geist Mono.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-geist-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -18,11 +23,6 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -39,82 +39,123 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+
+  /* Status semantics (operational + payment). Used as dot + label, never color alone. */
+  --color-status-free: var(--status-free);
+  --color-status-progress: var(--status-progress);
+  --color-status-queued: var(--status-queued);
+  --color-status-done: var(--status-done);
+  --color-status-cancelled: var(--status-cancelled);
+  --color-pay-unpaid: var(--pay-unpaid);
+  --color-pay-paid: var(--pay-paid);
+  --color-pay-credit: var(--pay-credit);
+  --color-pay-refunded: var(--pay-refunded);
+
+  /* Custom radii — rounded-md controls, rounded-xl cards (not shadcn defaults). */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  /* Subtle shadows tinted toward the zinc base, not neutral black. */
+  --shadow-2xs: 0 1px 2px 0 oklch(0.21 0.006 285.885 / 0.04);
+  --shadow-xs: 0 1px 2px 0 oklch(0.21 0.006 285.885 / 0.05);
+  --shadow-sm:
+    0 1px 3px 0 oklch(0.21 0.006 285.885 / 0.06), 0 1px 2px -1px
+    oklch(0.21 0.006 285.885 / 0.05);
+  --shadow-md:
+    0 2px 6px -1px oklch(0.21 0.006 285.885 / 0.08), 0 1px 3px -1px
+    oklch(0.21 0.006 285.885 / 0.05);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Neutral base = Zinc (never pure #000 / #fff for surfaces). */
+  --background: oklch(0.985 0.001 286.375); /* zinc-50 */
+  --foreground: oklch(0.21 0.006 285.885); /* zinc-900 */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.21 0.006 285.885);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.21 0.006 285.885);
+
+  /* Single accent = Emerald, used sparingly for primary actions. */
+  --primary: oklch(0.596 0.122 163.225); /* emerald-600, desaturated */
+  --primary-foreground: oklch(0.985 0.002 165);
+
+  --secondary: oklch(0.967 0.001 286.375); /* zinc-100 */
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938); /* zinc-500 */
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
+  --destructive: oklch(0.577 0.193 27.325); /* rose/red */
+  --border: oklch(0.92 0.004 286.32); /* zinc-200 */
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.596 0.122 163.225); /* accent focus ring */
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Operational status palette */
+  --status-free: oklch(0.552 0.016 285.938); /* zinc — neutral/idle */
+  --status-progress: oklch(0.596 0.122 163.225); /* accent — emerald */
+  --status-queued: oklch(0.769 0.158 70.08); /* amber */
+  --status-done: oklch(0.596 0.122 163.225); /* emerald */
+  --status-cancelled: oklch(0.705 0.015 286.067); /* muted zinc-400 */
+  /* Payment status palette */
+  --pay-unpaid: oklch(0.769 0.158 70.08); /* amber */
+  --pay-paid: oklch(0.596 0.122 163.225); /* emerald */
+  --pay-credit: oklch(0.606 0.1 300); /* muted violet */
+  --pay-refunded: oklch(0.645 0.18 16.5); /* rose */
+
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-primary: oklch(0.596 0.122 163.225);
+  --sidebar-primary-foreground: oklch(0.985 0.002 165);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.596 0.122 163.225);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.141 0.005 285.823); /* zinc-950 */
+  --foreground: oklch(0.985 0.001 286.375);
+  --card: oklch(0.21 0.006 285.885); /* zinc-900 */
+  --card-foreground: oklch(0.985 0.001 286.375);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0.001 286.375);
+
+  --primary: oklch(0.696 0.13 162.48); /* emerald-500 */
+  --primary-foreground: oklch(0.18 0.02 165);
+
+  --secondary: oklch(0.274 0.006 286.033); /* zinc-800 */
+  --secondary-foreground: oklch(0.985 0.001 286.375);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067); /* zinc-400 */
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0.001 286.375);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.696 0.13 162.48);
+
+  --status-free: oklch(0.705 0.015 286.067);
+  --status-progress: oklch(0.696 0.13 162.48);
+  --status-queued: oklch(0.828 0.149 84);
+  --status-done: oklch(0.696 0.13 162.48);
+  --status-cancelled: oklch(0.552 0.016 285.938);
+  --pay-unpaid: oklch(0.828 0.149 84);
+  --pay-paid: oklch(0.696 0.13 162.48);
+  --pay-credit: oklch(0.7 0.11 300);
+  --pay-refunded: oklch(0.712 0.176 16.5);
+
+  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: oklch(0.985 0.001 286.375);
+  --sidebar-primary: oklch(0.696 0.13 162.48);
+  --sidebar-primary-foreground: oklch(0.18 0.02 165);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.985 0.001 286.375);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.696 0.13 162.48);
 }
 
 @layer base {
@@ -126,5 +167,9 @@
   }
   html {
     @apply font-sans;
+  }
+  /* Tabular, monospaced figures everywhere numbers are shown via .font-mono. */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
   }
 }
