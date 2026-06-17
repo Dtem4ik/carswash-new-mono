@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   web:
-    name: web (lint · typecheck · build)
+    name: web (lint · typecheck · build · test)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +30,9 @@ jobs:
 
       - name: Build web
         run: pnpm run build:web
+
+      - name: Test web (vitest)
+        run: pnpm run test:web
 
   api:
     name: api (lint · typecheck · test)
