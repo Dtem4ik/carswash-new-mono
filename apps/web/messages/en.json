@@ -52,5 +52,57 @@
     "total": "Total",
     "plateUnknown": "No plate",
     "activeOrder": "Active order"
+  },
+  "orderStatus": {
+    "queued": "Queued",
+    "in_progress": "In progress",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "boxStatus": {
+    "free": "Free",
+    "busy": "Busy"
+  },
+  "paymentStatus": {
+    "unpaid": "Unpaid",
+    "partial": "Partially paid",
+    "paid": "Paid",
+    "credit": "Credit",
+    "refunded": "Refunded"
+  },
+  "errors": {
+    "unknown": "Unexpected error",
+    "not_found": "Not found",
+    "auth": {
+      "forbidden": "You don't have permission for this action",
+      "expired_token": "Your session has expired. Please sign in again.",
+      "invalid_token": "Invalid session. Please sign in again.",
+      "missing_token": "You are not signed in",
+      "misconfigured": "Authentication is misconfigured"
+    },
+    "tenant": {
+      "car_wash_required": "Select a car wash first",
+      "car_wash_forbidden": "You don't have access to this car wash",
+      "invalid_car_wash": "Unknown car wash",
+      "no_membership": "Your account is not linked to an organization"
+    },
+    "shift": {
+      "already_open": "A shift is already open",
+      "not_open": "No shift is open",
+      "has_open_orders": "Close all active orders before closing the shift"
+    },
+    "order": {
+      "empty": "Add at least one service or a package",
+      "intake_required": "Order details are required",
+      "not_cancellable": "This order can no longer be cancelled",
+      "not_in_progress": "This order is not in progress",
+      "plate_required": "A licence plate is required"
+    },
+    "discount": {
+      "exceeds_subtotal": "The discount cannot exceed the subtotal"
+    },
+    "pricing": {
+      "missing": "No price is configured for this service and car type"
+    }
   }
 }
