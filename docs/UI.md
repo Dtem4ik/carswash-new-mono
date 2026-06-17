@@ -114,8 +114,13 @@ primitives.
 
 ## Layout & responsive
 
-- Breakpoints `sm`/`md`/`lg`/`xl`. Container `max-w-[1400px] mx-auto`. CSS Grid
-  over flex-math. Full-height = `min-h-[100dvh]`, never `h-screen`.
+- Breakpoints `sm`/`md`/`lg`/`xl`. CSS Grid over flex-math. Full-height =
+  `min-h-[100dvh]`, never `h-screen`.
+- The authenticated shell is **full-bleed**: a fixed-width left rail flush to the
+  edge and full height, with the main area filling the remaining width. Do NOT
+  wrap the shell or board in a `max-w-*` centering container (it detaches the
+  content from the rail on wide screens). A reading-width cap may be applied only
+  to narrow text-form views if needed — never to the dashboard frame.
 - **App shell:** left nav (collapses to a drawer on small screens) + a clean
   header carrying the brand mark, the org, the car-wash switcher, the language
   switcher, and the signed-in user with logout. The active nav item carries the
