@@ -264,6 +264,123 @@
         "title": "CarWashOut",
         "type": "object"
       },
+      "CashMovementCreate": {
+        "properties": {
+          "amount_minor": {
+            "minimum": 0.0,
+            "title": "Amount Minor",
+            "type": "integer"
+          },
+          "payee_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payee User Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CashMovementType"
+          }
+        },
+        "required": [
+          "type",
+          "amount_minor"
+        ],
+        "title": "CashMovementCreate",
+        "type": "object"
+      },
+      "CashMovementOut": {
+        "properties": {
+          "amount_minor": {
+            "title": "Amount Minor",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "payee_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payee User Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "shift_id": {
+            "format": "uuid",
+            "title": "Shift Id",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CashMovementType"
+          }
+        },
+        "required": [
+          "id",
+          "shift_id",
+          "type",
+          "amount_minor",
+          "reason",
+          "payee_user_id",
+          "created_by",
+          "created_at"
+        ],
+        "title": "CashMovementOut",
+        "type": "object"
+      },
+      "CashMovementType": {
+        "enum": [
+          "expense",
+          "payout",
+          "collection",
+          "deposit"
+        ],
+        "title": "CashMovementType",
+        "type": "string"
+      },
       "ClientKind": {
         "enum": [
           "walkin",
@@ -308,6 +425,35 @@
         "title": "ClientOut",
         "type": "object"
       },
+      "DiscountIn": {
+        "properties": {
+          "amount_minor": {
+            "minimum": 0.0,
+            "title": "Amount Minor",
+            "type": "integer"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DiscountType",
+            "default": "manual"
+          }
+        },
+        "required": [
+          "amount_minor"
+        ],
+        "title": "DiscountIn",
+        "type": "object"
+      },
+      "DiscountType": {
+        "enum": [
+          "none",
+          "manual",
+          "loyalty",
+          "promo",
+          "subscription"
+        ],
+        "title": "DiscountType",
+        "type": "string"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -319,6 +465,72 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IntakeIn": {
+        "description": "Registered intake (name/phone present \u2192 upsert) or walk-in (plate only).",
+        "properties": {
+          "brand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand"
+          },
+          "client_kind": {
+            "$ref": "#/components/schemas/ClientKind",
+            "default": "walkin"
+          },
+          "client_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Name"
+          },
+          "client_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Phone"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "plate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plate"
+          }
+        },
+        "title": "IntakeIn",
         "type": "object"
       },
       "MeResponse": {
@@ -379,6 +591,569 @@
         ],
         "title": "MembershipRole",
         "type": "string"
+      },
+      "OrderCreate": {
+        "properties": {
+          "box_id": {
+            "format": "uuid",
+            "title": "Box Id",
+            "type": "string"
+          },
+          "car_type_id": {
+            "format": "uuid",
+            "title": "Car Type Id",
+            "type": "string"
+          },
+          "client_car_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Car Id"
+          },
+          "discount": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DiscountIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "intake": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntakeIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "package_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Package Id"
+          },
+          "services": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/OrderServiceIn"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "washer_user_ids": {
+            "default": [],
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Washer User Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "car_type_id",
+          "box_id"
+        ],
+        "title": "OrderCreate",
+        "type": "object"
+      },
+      "OrderDetailOut": {
+        "properties": {
+          "balance_minor": {
+            "title": "Balance Minor",
+            "type": "integer"
+          },
+          "box_id": {
+            "format": "uuid",
+            "title": "Box Id",
+            "type": "string"
+          },
+          "car_type_id": {
+            "format": "uuid",
+            "title": "Car Type Id",
+            "type": "string"
+          },
+          "car_wash_id": {
+            "format": "uuid",
+            "title": "Car Wash Id",
+            "type": "string"
+          },
+          "client_car_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Car Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "discount_amount_minor": {
+            "title": "Discount Amount Minor",
+            "type": "integer"
+          },
+          "discount_type": {
+            "$ref": "#/components/schemas/DiscountType"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "finished_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished By"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "package_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Package Id"
+          },
+          "paid_total_minor": {
+            "title": "Paid Total Minor",
+            "type": "integer"
+          },
+          "payment_status": {
+            "$ref": "#/components/schemas/OrderPaymentStatus"
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentOut"
+            },
+            "title": "Payments",
+            "type": "array"
+          },
+          "plate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plate"
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/OrderServiceOut"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "shift_id": {
+            "format": "uuid",
+            "title": "Shift Id",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "subtotal_minor": {
+            "title": "Subtotal Minor",
+            "type": "integer"
+          },
+          "total_minor": {
+            "title": "Total Minor",
+            "type": "integer"
+          },
+          "washers": {
+            "items": {
+              "$ref": "#/components/schemas/OrderWasherOut"
+            },
+            "title": "Washers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "car_wash_id",
+          "box_id",
+          "shift_id",
+          "client_car_id",
+          "plate",
+          "car_type_id",
+          "status",
+          "payment_status",
+          "subtotal_minor",
+          "discount_amount_minor",
+          "discount_type",
+          "total_minor",
+          "currency",
+          "package_id",
+          "created_by",
+          "finished_by",
+          "started_at",
+          "finished_at",
+          "created_at",
+          "services",
+          "washers",
+          "payments",
+          "paid_total_minor",
+          "balance_minor"
+        ],
+        "title": "OrderDetailOut",
+        "type": "object"
+      },
+      "OrderOut": {
+        "properties": {
+          "box_id": {
+            "format": "uuid",
+            "title": "Box Id",
+            "type": "string"
+          },
+          "car_type_id": {
+            "format": "uuid",
+            "title": "Car Type Id",
+            "type": "string"
+          },
+          "car_wash_id": {
+            "format": "uuid",
+            "title": "Car Wash Id",
+            "type": "string"
+          },
+          "client_car_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Car Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "discount_amount_minor": {
+            "title": "Discount Amount Minor",
+            "type": "integer"
+          },
+          "discount_type": {
+            "$ref": "#/components/schemas/DiscountType"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "finished_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished By"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "package_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Package Id"
+          },
+          "payment_status": {
+            "$ref": "#/components/schemas/OrderPaymentStatus"
+          },
+          "plate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plate"
+          },
+          "shift_id": {
+            "format": "uuid",
+            "title": "Shift Id",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "subtotal_minor": {
+            "title": "Subtotal Minor",
+            "type": "integer"
+          },
+          "total_minor": {
+            "title": "Total Minor",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "car_wash_id",
+          "box_id",
+          "shift_id",
+          "client_car_id",
+          "plate",
+          "car_type_id",
+          "status",
+          "payment_status",
+          "subtotal_minor",
+          "discount_amount_minor",
+          "discount_type",
+          "total_minor",
+          "currency",
+          "package_id",
+          "created_by",
+          "finished_by",
+          "started_at",
+          "finished_at",
+          "created_at"
+        ],
+        "title": "OrderOut",
+        "type": "object"
+      },
+      "OrderPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrderOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "OrderPage",
+        "type": "object"
+      },
+      "OrderPaymentStatus": {
+        "enum": [
+          "unpaid",
+          "partial",
+          "paid",
+          "credit",
+          "refunded"
+        ],
+        "title": "OrderPaymentStatus",
+        "type": "string"
+      },
+      "OrderServiceIn": {
+        "properties": {
+          "qty": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Qty",
+            "type": "integer"
+          },
+          "service_id": {
+            "format": "uuid",
+            "title": "Service Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "service_id"
+        ],
+        "title": "OrderServiceIn",
+        "type": "object"
+      },
+      "OrderServiceOut": {
+        "properties": {
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "service_id": {
+            "format": "uuid",
+            "title": "Service Id",
+            "type": "string"
+          },
+          "unit_amount_minor": {
+            "title": "Unit Amount Minor",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "service_id",
+          "unit_amount_minor",
+          "qty"
+        ],
+        "title": "OrderServiceOut",
+        "type": "object"
+      },
+      "OrderStatus": {
+        "enum": [
+          "queued",
+          "in_progress",
+          "done",
+          "cancelled"
+        ],
+        "title": "OrderStatus",
+        "type": "string"
+      },
+      "OrderWasherOut": {
+        "properties": {
+          "earned_amount_minor": {
+            "title": "Earned Amount Minor",
+            "type": "integer"
+          },
+          "share_bps": {
+            "title": "Share Bps",
+            "type": "integer"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "share_bps",
+          "earned_amount_minor"
+        ],
+        "title": "OrderWasherOut",
+        "type": "object"
       },
       "OrganizationOut": {
         "properties": {
@@ -554,6 +1329,97 @@
         "title": "PackageUpdate",
         "type": "object"
       },
+      "PaymentCreate": {
+        "properties": {
+          "amount_minor": {
+            "minimum": 0.0,
+            "title": "Amount Minor",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PaymentKind",
+            "default": "payment"
+          },
+          "method": {
+            "$ref": "#/components/schemas/PaymentMethod"
+          }
+        },
+        "required": [
+          "method",
+          "amount_minor"
+        ],
+        "title": "PaymentCreate",
+        "type": "object"
+      },
+      "PaymentKind": {
+        "enum": [
+          "payment",
+          "refund"
+        ],
+        "title": "PaymentKind",
+        "type": "string"
+      },
+      "PaymentMethod": {
+        "enum": [
+          "cash",
+          "card",
+          "transfer",
+          "bonus"
+        ],
+        "title": "PaymentMethod",
+        "type": "string"
+      },
+      "PaymentOut": {
+        "properties": {
+          "amount_minor": {
+            "title": "Amount Minor",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PaymentKind"
+          },
+          "method": {
+            "$ref": "#/components/schemas/PaymentMethod"
+          },
+          "paid_at": {
+            "format": "date-time",
+            "title": "Paid At",
+            "type": "string"
+          },
+          "received_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received By"
+          }
+        },
+        "required": [
+          "id",
+          "method",
+          "kind",
+          "amount_minor",
+          "currency",
+          "received_by",
+          "paid_at"
+        ],
+        "title": "PaymentOut",
+        "type": "object"
+      },
       "ProfileOut": {
         "properties": {
           "full_name": {
@@ -711,6 +1577,47 @@
         "title": "ServiceUpdate",
         "type": "object"
       },
+      "ShiftClose": {
+        "properties": {
+          "counted_cash_minor": {
+            "minimum": 0.0,
+            "title": "Counted Cash Minor",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "counted_cash_minor"
+        ],
+        "title": "ShiftClose",
+        "type": "object"
+      },
+      "ShiftCloseOut": {
+        "properties": {
+          "counted_minor": {
+            "title": "Counted Minor",
+            "type": "integer"
+          },
+          "expected_minor": {
+            "title": "Expected Minor",
+            "type": "integer"
+          },
+          "shift": {
+            "$ref": "#/components/schemas/ShiftOut"
+          },
+          "variance_minor": {
+            "title": "Variance Minor",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "shift",
+          "expected_minor",
+          "counted_minor",
+          "variance_minor"
+        ],
+        "title": "ShiftCloseOut",
+        "type": "object"
+      },
       "ShiftOpen": {
         "properties": {
           "opening_float_minor": {
@@ -744,6 +1651,40 @@
             ],
             "title": "Closed At"
           },
+          "closed_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed By"
+          },
+          "closing_expected_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closing Expected Minor"
+          },
+          "counted_cash_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counted Cash Minor"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -768,9 +1709,12 @@
           "id",
           "car_wash_id",
           "opened_by",
+          "closed_by",
           "opened_at",
           "closed_at",
-          "opening_float_minor"
+          "opening_float_minor",
+          "counted_cash_minor",
+          "closing_expected_minor"
         ],
         "title": "ShiftOut",
         "type": "object"
@@ -1646,6 +2590,544 @@
         ]
       }
     },
+    "/orders": {
+      "get": {
+        "operationId": "list_orders_orders_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/OrderStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "box_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Box Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "created_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Created From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "created_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Created To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Orders",
+        "tags": [
+          "orders"
+        ]
+      },
+      "post": {
+        "operationId": "create_order_orders_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{order_id}": {
+      "get": {
+        "operationId": "get_order_orders__order_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{order_id}/cancel": {
+      "post": {
+        "operationId": "cancel_order_orders__order_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cancel Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{order_id}/close": {
+      "post": {
+        "operationId": "close_order_orders__order_id__close_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Close Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{order_id}/payments": {
+      "get": {
+        "operationId": "list_payments_orders__order_id__payments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentOut"
+                  },
+                  "title": "Response List Payments Orders  Order Id  Payments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Payments",
+        "tags": [
+          "orders"
+        ]
+      },
+      "post": {
+        "operationId": "record_payment_orders__order_id__payments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Record Payment",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
     "/package-prices": {
       "get": {
         "operationId": "list_package_prices_package_prices_get",
@@ -2496,6 +3978,70 @@
         ]
       }
     },
+    "/shifts/close": {
+      "post": {
+        "operationId": "close_shift_shifts_close_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftClose"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftCloseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Close Shift",
+        "tags": [
+          "shifts"
+        ]
+      }
+    },
     "/shifts/current": {
       "get": {
         "operationId": "current_shift_shifts_current_get",
@@ -2553,6 +4099,70 @@
           }
         ],
         "summary": "Current Shift",
+        "tags": [
+          "shifts"
+        ]
+      }
+    },
+    "/shifts/current/cash-movements": {
+      "post": {
+        "operationId": "record_cash_movement_shifts_current_cash_movements_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashMovementCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashMovementOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Record Cash Movement",
         "tags": [
           "shifts"
         ]
