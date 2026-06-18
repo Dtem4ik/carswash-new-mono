@@ -17,10 +17,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api._common import not_found
+from app.auth.guards import active_car_wash
 from app.auth.tenancy import TenantContext, get_tenant_context
 from app.deps import get_session
-from app.models.enums import ClientKind
+from app.models.enums import ClientKind, MembershipRole
 from app.models.operations import Car, Client, ClientCar
+from app.models.tenancy import Membership, Profile
 
 router = APIRouter(tags=["lookup"])
 
@@ -40,6 +42,14 @@ class CarOut(BaseModel):
     car_type_id: uuid.UUID
     brand: str | None
     model: str | None
+
+
+class StaffOut(BaseModel):
+    """A user assignable as a washer at the active car wash."""
+
+    user_id: uuid.UUID
+    name: str | None
+    role: MembershipRole
 
 
 def _normalize_plate(value: str) -> str:
@@ -83,6 +93,28 @@ async def search_cars(
         .limit(_LIMIT)
     )
     return list((await session.execute(stmt)).scalars())
+
+
+@router.get("/staff", response_model=list[StaffOut])
+async def list_staff(
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> list[StaffOut]:
+    """Users assignable as washers at the active car wash: members scoped to this
+    car wash plus org-level members (owner/org_admin who can also work the floor).
+    """
+    car_wash_id = active_car_wash(ctx)
+    stmt = (
+        select(Membership.user_id, Profile.full_name, Membership.role)
+        .join(Profile, Profile.id == Membership.user_id, isouter=True)
+        .where(
+            Membership.organization_id == ctx.organization.id,
+            (Membership.car_wash_id == car_wash_id) | (Membership.car_wash_id.is_(None)),
+        )
+        .order_by(Profile.full_name)
+    )
+    rows = (await session.execute(stmt)).all()
+    return [StaffOut(user_id=uid, name=name, role=role) for uid, name, role in rows]
 
 
 @router.get("/clients/{client_id}/cars", response_model=list[CarOut])

@@ -12,6 +12,7 @@ from __future__ import annotations
 import datetime
 import re
 import uuid
+from collections.abc import Sequence
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -46,6 +47,7 @@ from app.models.operations import (
     Payment,
     Shift,
 )
+from app.models.tenancy import Profile
 
 router = APIRouter(tags=["orders"])
 
@@ -111,8 +113,14 @@ class OrderServiceOut(BaseModel):
     qty: int
 
 
-class OrderWasherOut(BaseModel):
+class OrderWasherBrief(BaseModel):
+    """A washer assigned to an order, with the display name from ``profiles``."""
+
     user_id: uuid.UUID
+    name: str | None
+
+
+class OrderWasherOut(OrderWasherBrief):
     share_bps: int
     earned_amount_minor: int
 
@@ -134,7 +142,13 @@ class OrderOut(BaseModel):
     box_id: uuid.UUID
     shift_id: uuid.UUID
     client_car_id: uuid.UUID | None
+    # Resolved vehicle plate: the registered car's plate, else the walk-in snapshot.
     plate: str | None
+    car_brand: str | None
+    car_model: str | None
+    # Client identity when the order is registered; null for an anonymous walk-in.
+    client_name: str | None
+    client_phone: str | None
     car_type_id: uuid.UUID
     status: OrderStatus
     payment_status: OrderPaymentStatus
@@ -144,6 +158,8 @@ class OrderOut(BaseModel):
     total_minor: int
     currency: str
     package_id: uuid.UUID | None
+    # Assigned washers with their display names (for the board + list).
+    washers: Sequence[OrderWasherBrief]
     created_by: uuid.UUID
     finished_by: uuid.UUID | None
     started_at: datetime.datetime | None
@@ -153,7 +169,8 @@ class OrderOut(BaseModel):
 
 class OrderDetailOut(OrderOut):
     services: list[OrderServiceOut]
-    washers: list[OrderWasherOut]
+    # The detail view carries the full washer payroll snapshot (share + earned).
+    washers: Sequence[OrderWasherOut]
     payments: list[PaymentOut]
     paid_total_minor: int
     balance_minor: int
@@ -268,7 +285,22 @@ def _washer_shares(user_ids: list[uuid.UUID]) -> list[tuple[uuid.UUID, int]]:
     return [(uid, base + (remainder if i == 0 else 0)) for i, uid in enumerate(unique)]
 
 
-def _to_out(order: Order) -> OrderOut:
+class _VehicleClient(BaseModel):
+    """Resolved vehicle + client identity for a registered order's ``client_car``."""
+
+    plate: str
+    brand: str | None
+    model: str | None
+    client_name: str
+    client_phone: str | None
+
+
+def _to_out(
+    order: Order,
+    *,
+    washers: list[OrderWasherBrief],
+    vehicle: _VehicleClient | None,
+) -> OrderOut:
     return OrderOut(
         id=order.id,
         number=order.number,
@@ -276,7 +308,12 @@ def _to_out(order: Order) -> OrderOut:
         box_id=order.box_id,
         shift_id=order.shift_id,
         client_car_id=order.client_car_id,
-        plate=order.plate,
+        # Registered orders snapshot no plate; resolve it from the linked car.
+        plate=order.plate if order.plate is not None else (vehicle.plate if vehicle else None),
+        car_brand=vehicle.brand if vehicle else None,
+        car_model=vehicle.model if vehicle else None,
+        client_name=vehicle.client_name if vehicle else None,
+        client_phone=vehicle.client_phone if vehicle else None,
         car_type_id=order.car_type_id,
         status=order.status,
         payment_status=order.payment_status,
@@ -286,12 +323,79 @@ def _to_out(order: Order) -> OrderOut:
         total_minor=order.total_minor,
         currency=order.currency,
         package_id=order.package_id,
+        washers=washers,
         created_by=order.created_by,
         finished_by=order.finished_by,
         started_at=order.started_at,
         finished_at=order.finished_at,
         created_at=order.created_at,
     )
+
+
+async def _washer_names(
+    session: AsyncSession, order_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, list[tuple[uuid.UUID, str | None]]]:
+    """Map each order id → its assigned washers as (user_id, display name)."""
+    if not order_ids:
+        return {}
+    rows = (
+        await session.execute(
+            select(OrderWasher.order_id, OrderWasher.user_id, Profile.full_name)
+            .join(Profile, Profile.id == OrderWasher.user_id, isouter=True)
+            .where(OrderWasher.order_id.in_(order_ids))
+        )
+    ).all()
+    grouped: dict[uuid.UUID, list[tuple[uuid.UUID, str | None]]] = {}
+    for order_id, user_id, full_name in rows:
+        grouped.setdefault(order_id, []).append((user_id, full_name))
+    return grouped
+
+
+async def _vehicle_clients(
+    session: AsyncSession, client_car_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, _VehicleClient]:
+    """Map each ``client_car`` id → its resolved vehicle + client identity."""
+    if not client_car_ids:
+        return {}
+    rows = (
+        await session.execute(
+            select(
+                ClientCar.id,
+                Car.plate,
+                Car.brand,
+                Car.model,
+                Client.name,
+                Client.phone,
+            )
+            .join(Car, Car.id == ClientCar.car_id)
+            .join(Client, Client.id == ClientCar.client_id)
+            .where(ClientCar.id.in_(client_car_ids))
+        )
+    ).all()
+    return {
+        cc_id: _VehicleClient(
+            plate=plate, brand=brand, model=model, client_name=name, client_phone=phone
+        )
+        for cc_id, plate, brand, model, name, phone in rows
+    }
+
+
+async def _enrich_orders(session: AsyncSession, orders: list[Order]) -> list[OrderOut]:
+    """Batch-resolve washers + vehicle/client for a page of orders (no N+1)."""
+    washers = await _washer_names(session, [o.id for o in orders])
+    vehicles = await _vehicle_clients(
+        session, [o.client_car_id for o in orders if o.client_car_id is not None]
+    )
+    return [
+        _to_out(
+            o,
+            washers=[
+                OrderWasherBrief(user_id=uid, name=name) for uid, name in washers.get(o.id, [])
+            ],
+            vehicle=vehicles.get(o.client_car_id) if o.client_car_id is not None else None,
+        )
+        for o in orders
+    ]
 
 
 async def _resolve_intake(
@@ -681,16 +785,19 @@ async def list_orders(
     total = (
         await session.execute(select(func.count()).select_from(Order).where(*conditions))
     ).scalar_one()
-    rows = (
-        await session.execute(
-            select(Order)
-            .where(*conditions)
-            .order_by(Order.number.desc())
-            .limit(limit)
-            .offset(offset)
-        )
-    ).scalars()
-    return OrderPage(items=[_to_out(o) for o in rows], total=int(total), limit=limit, offset=offset)
+    rows = list(
+        (
+            await session.execute(
+                select(Order)
+                .where(*conditions)
+                .order_by(Order.number.desc())
+                .limit(limit)
+                .offset(offset)
+            )
+        ).scalars()
+    )
+    items = await _enrich_orders(session, rows)
+    return OrderPage(items=items, total=int(total), limit=limit, offset=offset)
 
 
 async def _build_detail(
@@ -709,6 +816,9 @@ async def _build_detail(
             await session.execute(select(OrderWasher).where(OrderWasher.order_id == order_id))
         ).scalars()
     )
+    washer_names = {
+        uid: name for uid, name in (await _washer_names(session, [order_id])).get(order_id, [])
+    }
     payments = list(
         (
             await session.execute(
@@ -719,9 +829,18 @@ async def _build_detail(
     paid, refund = await _payment_totals(session, order_id)
     paid_total = paid - refund
 
-    base = _to_out(order)
+    vehicle = (
+        (await _vehicle_clients(session, [order.client_car_id])).get(order.client_car_id)
+        if order.client_car_id is not None
+        else None
+    )
+    base = _to_out(
+        order,
+        washers=[OrderWasherBrief(user_id=uid, name=name) for uid, name in washer_names.items()],
+        vehicle=vehicle,
+    )
     return OrderDetailOut(
-        **base.model_dump(),
+        **base.model_dump(exclude={"washers"}),
         services=[
             OrderServiceOut(
                 service_id=s.service_id, unit_amount_minor=s.unit_amount_minor, qty=s.qty
@@ -730,7 +849,10 @@ async def _build_detail(
         ],
         washers=[
             OrderWasherOut(
-                user_id=w.user_id, share_bps=w.share_bps, earned_amount_minor=w.earned_amount_minor
+                user_id=w.user_id,
+                name=washer_names.get(w.user_id),
+                share_bps=w.share_bps,
+                earned_amount_minor=w.earned_amount_minor,
             )
             for w in washers
         ],
