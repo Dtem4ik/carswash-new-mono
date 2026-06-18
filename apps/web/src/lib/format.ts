@@ -29,6 +29,20 @@ export function formatMoney(
   return formatter.format(amountMinor / 10 ** fractionDigits);
 }
 
+/**
+ * The number of minor units in one major unit of `currency` (e.g. 100 for KZT,
+ * 1 for JPY, 1000 for BHD), derived from Intl's resolved fraction digits. Lets
+ * the UI accept a discount in major units and convert it to the canonical minor
+ * units the API expects, without a hard-coded divisor.
+ */
+export function currencyMinorFactor(currency: string, locale: string): number {
+  const fractionDigits = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+  }).resolvedOptions().maximumFractionDigits;
+  return 10 ** (fractionDigits ?? 2);
+}
+
 /** Format a UTC ISO timestamp in the given IANA timezone. */
 export function formatDateTime(
   iso: string,
@@ -67,6 +81,7 @@ export function useFormatters() {
         formatDateTime(iso, timeZone, locale),
       time: (iso: string, timeZone: string) =>
         formatTime(iso, timeZone, locale),
+      minorFactor: (currency: string) => currencyMinorFactor(currency, locale),
     }),
     [locale],
   );
