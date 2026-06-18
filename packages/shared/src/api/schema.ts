@@ -508,6 +508,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Staff
+         * @description Users assignable as washers at the active car wash: members scoped to this
+         *     car wash plus org-level members (owner/org_admin who can also work the floor).
+         */
+        get: operations["list_staff_staff_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -773,6 +794,10 @@ export interface components {
              * Format: uuid
              */
             box_id: string;
+            /** Car Brand */
+            car_brand: string | null;
+            /** Car Model */
+            car_model: string | null;
             /**
              * Car Type Id
              * Format: uuid
@@ -785,6 +810,10 @@ export interface components {
             car_wash_id: string;
             /** Client Car Id */
             client_car_id: string | null;
+            /** Client Name */
+            client_name: string | null;
+            /** Client Phone */
+            client_phone: string | null;
             /**
              * Created At
              * Format: date-time
@@ -844,6 +873,10 @@ export interface components {
              * Format: uuid
              */
             box_id: string;
+            /** Car Brand */
+            car_brand: string | null;
+            /** Car Model */
+            car_model: string | null;
             /**
              * Car Type Id
              * Format: uuid
@@ -856,6 +889,10 @@ export interface components {
             car_wash_id: string;
             /** Client Car Id */
             client_car_id: string | null;
+            /** Client Name */
+            client_name: string | null;
+            /** Client Phone */
+            client_phone: string | null;
             /**
              * Created At
              * Format: date-time
@@ -899,6 +936,8 @@ export interface components {
             subtotal_minor: number;
             /** Total Minor */
             total_minor: number;
+            /** Washers */
+            washers: components["schemas"]["OrderWasherBrief"][];
         };
         /** OrderPage */
         OrderPage: {
@@ -946,10 +985,25 @@ export interface components {
          * @enum {string}
          */
         OrderStatus: "queued" | "in_progress" | "done" | "cancelled";
+        /**
+         * OrderWasherBrief
+         * @description A washer assigned to an order, with the display name from ``profiles``.
+         */
+        OrderWasherBrief: {
+            /** Name */
+            name: string | null;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
         /** OrderWasherOut */
         OrderWasherOut: {
             /** Earned Amount Minor */
             earned_amount_minor: number;
+            /** Name */
+            name: string | null;
             /** Share Bps */
             share_bps: number;
             /**
@@ -1206,6 +1260,20 @@ export interface components {
             opened_by: string;
             /** Opening Float Minor */
             opening_float_minor: number;
+        };
+        /**
+         * StaffOut
+         * @description A user assignable as a washer at the active car wash.
+         */
+        StaffOut: {
+            /** Name */
+            name: string | null;
+            role: components["schemas"]["MembershipRole"];
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -2467,6 +2535,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShiftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_staff_staff_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffOut"][];
                 };
             };
             /** @description Validation Error */
