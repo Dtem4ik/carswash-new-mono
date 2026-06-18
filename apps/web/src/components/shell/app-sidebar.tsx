@@ -27,14 +27,14 @@ interface NavItem {
   key: "board" | "orders" | "shift" | "admin";
   href: string;
   icon: LucideIcon;
-  /** Board ships in Phase 4a; the rest land in 4b/4c and are disabled for now. */
+  /** Board/orders/shift ship in Phase 4a/4b; admin lands in 4c and stays disabled. */
   enabled: boolean;
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
   { key: "board", href: "/board", icon: LayoutGrid, enabled: true },
-  { key: "orders", href: "/orders", icon: Receipt, enabled: false },
-  { key: "shift", href: "/shift", icon: Timer, enabled: false },
+  { key: "orders", href: "/orders", icon: Receipt, enabled: true },
+  { key: "shift", href: "/shift", icon: Timer, enabled: true },
   { key: "admin", href: "/admin", icon: Settings, enabled: false },
 ];
 
