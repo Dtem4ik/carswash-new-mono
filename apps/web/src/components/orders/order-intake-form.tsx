@@ -41,7 +41,11 @@ import {
   useStaff,
 } from "@/hooks/use-catalog";
 import { type OrderCreate, useCreateOrder } from "@/hooks/use-orders";
-import { extractErrorCode, resolveErrorMessage } from "@/lib/errors";
+import {
+  extractErrorCode,
+  resolveErrorMessage,
+  toErrorTranslator,
+} from "@/lib/errors";
 import { useFormatters } from "@/lib/format";
 import {
   computeOrderPreview,
@@ -716,7 +720,12 @@ export function OrderIntakeForm() {
                 role="alert"
                 className="border-destructive/30 bg-destructive/5 text-destructive space-y-2 rounded-lg border p-3 text-sm"
               >
-                <p>{resolveErrorMessage(withHas(tErrors), submitErrorCode)}</p>
+                <p>
+                  {resolveErrorMessage(
+                    toErrorTranslator(tErrors),
+                    submitErrorCode,
+                  )}
+                </p>
                 {submitErrorCode === "shift.not_open" ? (
                   <Link
                     href="/shift"
@@ -782,16 +791,6 @@ function Notice({ text }: { text: string }) {
       <p>{text}</p>
     </div>
   );
-}
-
-/** Adapt next-intl's translator to the `ErrorTranslator` shape (adds `.has`). */
-function withHas(t: ReturnType<typeof useTranslations>) {
-  const fn = ((key: string) => t(key)) as {
-    (key: string): string;
-    has: (key: string) => boolean;
-  };
-  fn.has = (key: string) => t.has(key);
-  return fn;
 }
 
 function ClientLookup({

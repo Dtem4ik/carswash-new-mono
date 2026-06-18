@@ -10,6 +10,19 @@ export interface ErrorTranslator {
   has: (key: string) => boolean;
 }
 
+/**
+ * Adapt a next-intl translator (callable + `.has`) to the `ErrorTranslator`
+ * shape this module consumes. Kept here so screens don't re-implement it.
+ */
+export function toErrorTranslator(t: {
+  (key: string): string;
+  has: (key: string) => boolean;
+}): ErrorTranslator {
+  const fn = ((key: string) => t(key)) as ErrorTranslator;
+  fn.has = (key: string) => t.has(key);
+  return fn;
+}
+
 export function resolveErrorMessage(
   t: ErrorTranslator,
   code: string | null | undefined,
