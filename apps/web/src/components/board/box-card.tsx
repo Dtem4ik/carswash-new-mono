@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Plus } from "lucide-react";
+import { Clock, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -111,6 +111,27 @@ export function BoxCard({
                 <span className="font-mono">· {elapsedLabel}</span>
               ) : null}
             </div>
+          ) : null}
+
+          {activeOrder.washers.length > 0 ? (
+            <ul
+              aria-label={tBoard("washersLabel")}
+              className="flex flex-wrap items-center gap-1.5"
+            >
+              <Users
+                size={14}
+                aria-hidden="true"
+                className="text-muted-foreground"
+              />
+              {activeOrder.washers.map((washer) => (
+                <li
+                  key={washer.user_id}
+                  className="bg-muted/60 inline-flex items-center rounded-full px-2 py-0.5 text-xs"
+                >
+                  {washer.name ?? "—"}
+                </li>
+              ))}
+            </ul>
           ) : null}
         </div>
       ) : (
