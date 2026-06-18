@@ -684,6 +684,28 @@
             "title": "Box Id",
             "type": "string"
           },
+          "car_brand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Car Brand"
+          },
+          "car_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Car Model"
+          },
           "car_type_id": {
             "format": "uuid",
             "title": "Car Type Id",
@@ -705,6 +727,28 @@
               }
             ],
             "title": "Client Car Id"
+          },
+          "client_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Name"
+          },
+          "client_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Phone"
           },
           "created_at": {
             "format": "date-time",
@@ -848,6 +892,10 @@
           "shift_id",
           "client_car_id",
           "plate",
+          "car_brand",
+          "car_model",
+          "client_name",
+          "client_phone",
           "car_type_id",
           "status",
           "payment_status",
@@ -857,13 +905,13 @@
           "total_minor",
           "currency",
           "package_id",
+          "washers",
           "created_by",
           "finished_by",
           "started_at",
           "finished_at",
           "created_at",
           "services",
-          "washers",
           "payments",
           "paid_total_minor",
           "balance_minor"
@@ -877,6 +925,28 @@
             "format": "uuid",
             "title": "Box Id",
             "type": "string"
+          },
+          "car_brand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Car Brand"
+          },
+          "car_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Car Model"
           },
           "car_type_id": {
             "format": "uuid",
@@ -899,6 +969,28 @@
               }
             ],
             "title": "Client Car Id"
+          },
+          "client_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Name"
+          },
+          "client_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Phone"
           },
           "created_at": {
             "format": "date-time",
@@ -1007,6 +1099,13 @@
           "total_minor": {
             "title": "Total Minor",
             "type": "integer"
+          },
+          "washers": {
+            "items": {
+              "$ref": "#/components/schemas/OrderWasherBrief"
+            },
+            "title": "Washers",
+            "type": "array"
           }
         },
         "required": [
@@ -1017,6 +1116,10 @@
           "shift_id",
           "client_car_id",
           "plate",
+          "car_brand",
+          "car_model",
+          "client_name",
+          "client_phone",
           "car_type_id",
           "status",
           "payment_status",
@@ -1026,6 +1129,7 @@
           "total_minor",
           "currency",
           "package_id",
+          "washers",
           "created_by",
           "finished_by",
           "started_at",
@@ -1131,11 +1235,49 @@
         "title": "OrderStatus",
         "type": "string"
       },
+      "OrderWasherBrief": {
+        "description": "A washer assigned to an order, with the display name from ``profiles``.",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name"
+        ],
+        "title": "OrderWasherBrief",
+        "type": "object"
+      },
       "OrderWasherOut": {
         "properties": {
           "earned_amount_minor": {
             "title": "Earned Amount Minor",
             "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
           },
           "share_bps": {
             "title": "Share Bps",
@@ -1149,6 +1291,7 @@
         },
         "required": [
           "user_id",
+          "name",
           "share_bps",
           "earned_amount_minor"
         ],
@@ -1717,6 +1860,37 @@
           "closing_expected_minor"
         ],
         "title": "ShiftOut",
+        "type": "object"
+      },
+      "StaffOut": {
+        "description": "A user assignable as a washer at the active car wash.",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "role"
+        ],
+        "title": "StaffOut",
         "type": "object"
       },
       "ValidationError": {
@@ -4229,6 +4403,65 @@
         "summary": "Open Shift",
         "tags": [
           "shifts"
+        ]
+      }
+    },
+    "/staff": {
+      "get": {
+        "description": "Users assignable as washers at the active car wash: members scoped to this\ncar wash plus org-level members (owner/org_admin who can also work the floor).",
+        "operationId": "list_staff_staff_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StaffOut"
+                  },
+                  "title": "Response List Staff Staff Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Staff",
+        "tags": [
+          "lookup"
         ]
       }
     }
