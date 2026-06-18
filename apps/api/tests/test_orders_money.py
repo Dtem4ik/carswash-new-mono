@@ -120,6 +120,23 @@ def _setup(conn: sa.Connection) -> None:
         sa.text("INSERT INTO auth.users (id) SELECT unnest(CAST(:ids AS uuid[]))"),
         {"ids": [IDS[k] for k in ("owner", "washer", "owner2", "w1", "w2", "w3")]},
     )
+    # Profiles carry the display names the enriched order schemas expose. A DB
+    # trigger auto-creates a bare profile per auth user, so upsert the names.
+    conn.execute(
+        sa.text(
+            "INSERT INTO profiles (id, full_name) VALUES"
+            " (:w1, 'Ivan Petrov'), (:w2, 'Olga Kim'), (:w3, 'Sergey Lee'),"
+            " (:owner, 'Owner Boss'), (:washer, 'Wash Worker')"
+            " ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name"
+        ),
+        {
+            "w1": IDS["w1"],
+            "w2": IDS["w2"],
+            "w3": IDS["w3"],
+            "owner": IDS["owner"],
+            "washer": IDS["washer"],
+        },
+    )
     conn.execute(
         sa.text(
             "INSERT INTO organizations (id, name, default_currency, default_locale) VALUES"
@@ -371,6 +388,62 @@ def test_washers_split_shares_equally() -> None:
     detail = client.get(f"/orders/{res['json']['id']}", headers=_owner()).json()
     shares = sorted(w["share_bps"] for w in detail["washers"])
     assert shares == [3333, 3333, 3334] and sum(shares) == 10000
+
+
+# --- enriched read payload ----------------------------------------------------
+
+
+def test_walkin_read_has_no_client_or_car_details() -> None:
+    res = _create_order(
+        _owner(),
+        intake={"plate": "WALK 1"},
+        services=[{"service_id": str(IDS["s1"]), "qty": 1}],
+        washer_user_ids=[str(IDS["w1"])],
+    )["json"]
+    # List item is enriched too.
+    listed = client.get("/orders", headers=_owner()).json()["items"]
+    item = next(o for o in listed if o["id"] == res["id"])
+    assert item["plate"] == "WALK 1"
+    assert item["client_name"] is None and item["client_phone"] is None
+    assert item["car_brand"] is None and item["car_model"] is None
+    assert item["washers"] == [{"user_id": str(IDS["w1"]), "name": "Ivan Petrov"}]
+
+
+def test_registered_read_resolves_car_and_client() -> None:
+    res = _create_order(
+        _owner(),
+        intake={
+            "plate": "ENR 1",
+            "client_name": "Jane Doe",
+            "client_phone": "+77019998877",
+            "client_kind": "regular",
+            "brand": "Toyota",
+            "model": "Camry",
+        },
+        services=[{"service_id": str(IDS["s1"]), "qty": 1}],
+        washer_user_ids=[str(IDS["w2"]), str(IDS["w3"])],
+    )["json"]
+
+    detail = client.get(f"/orders/{res['id']}", headers=_owner()).json()
+    assert detail["plate"] == "ENR 1"  # resolved from the linked car
+    assert detail["car_brand"] == "Toyota" and detail["car_model"] == "Camry"
+    assert detail["client_name"] == "Jane Doe" and detail["client_phone"] == "+77019998877"
+    names = sorted(w["name"] for w in detail["washers"])
+    assert names == ["Olga Kim", "Sergey Lee"]
+    # Detail washers also carry the payroll snapshot fields.
+    assert all("share_bps" in w and "earned_amount_minor" in w for w in detail["washers"])
+
+
+def test_staff_lookup_lists_assignable_members_with_names() -> None:
+    staff = client.get("/staff", headers=_owner()).json()
+    by_id = {s["user_id"]: s for s in staff}
+    # The car-wash-scoped washer is assignable, with their profile name + role.
+    assert by_id[str(IDS["washer"])]["name"] == "Wash Worker"
+    assert by_id[str(IDS["washer"])]["role"] == "washer"
+    # The org-level owner can also work the floor.
+    assert by_id[str(IDS["owner"])]["role"] == "owner"
+    # No cross-org leakage: owner2 belongs to a different organization.
+    assert str(IDS["owner2"]) not in by_id
 
 
 # --- close / cancel -----------------------------------------------------------
