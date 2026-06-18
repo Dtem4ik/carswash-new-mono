@@ -44,6 +44,10 @@ export function useOrder(carWashId: string | null, orderId: string | null) {
   return useQuery({
     queryKey: ["orders", "detail", carWashId, orderId],
     enabled: carWashId != null && orderId != null,
+    // Keep the detail fresh while it is open (board realtime invalidates the
+    // list keys, not this one); mutations also invalidate it immediately.
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
     queryFn: async (): Promise<OrderDetail> => {
       const { data, error } = await client.GET("/orders/{order_id}", {
         params: { path: { order_id: orderId as string } },
