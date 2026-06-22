@@ -68,6 +68,16 @@
   --color-tone-violet-bg: var(--tone-violet-bg);
   --color-tone-violet-fg: var(--tone-violet-fg);
 
+  /* License plate — a FIXED plate palette (defined once in :root, never
+   * overridden in .dark) so the plate face stays a realistic light surface with
+   * dark, legible ink in BOTH themes, like a physical plate. */
+  --color-plate-face: var(--plate-face);
+  --color-plate-face-edge: var(--plate-face-edge);
+  --color-plate-ink: var(--plate-ink);
+  --color-plate-muted: var(--plate-muted);
+  --color-plate-border: var(--plate-border);
+  --color-plate-divider: var(--plate-divider);
+
   /* Custom radii — rounded-lg controls, rounded-2xl cards (not shadcn defaults). */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -139,6 +149,15 @@
   --tone-rose-fg: oklch(0.46 0.15 18);
   --tone-violet-bg: oklch(0.955 0.03 300);
   --tone-violet-fg: oklch(0.45 0.15 300);
+
+  /* License plate face — fixed in both themes (NOT overridden in .dark). A real
+   * plate is a light panel with dark ink; this stays legible on a dark canvas. */
+  --plate-face: oklch(0.985 0.003 247); /* near-white plate surface */
+  --plate-face-edge: oklch(0.9 0.006 256); /* lower edge for the embossed sheen */
+  --plate-ink: oklch(0.22 0.02 264); /* deep slate, near-black registration ink */
+  --plate-muted: oklch(0.46 0.02 264); /* secondary ink (region / country code) */
+  --plate-border: oklch(0.7 0.012 256); /* outer frame */
+  --plate-divider: oklch(0.82 0.01 256); /* vertical segment rules */
 
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.23 0.02 264);

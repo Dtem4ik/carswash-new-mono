@@ -167,3 +167,38 @@ panel) with a capability-gated primary call to action.
   `src/lib/format.ts`; values stay canonical until the edge.
 - **All text via `next-intl`** — zero hard-coded strings; catalogs in
   `apps/web/messages/{en,ru,kk}.json` stay at full parity.
+
+## License plate
+
+Vehicle plates render through the country-aware `LicensePlate` component
+(`src/components/license-plate.tsx`), never as plain text. It draws a realistic
+plate face — a **fixed** light plate palette (the `--plate-*` tokens, defined
+once in `:root` and **not** overridden in `.dark`) so dark ink stays legible in
+both themes — using monospace bold uppercase figures. Props: `plate` (raw
+string), `country` (ISO 3166-1 alpha-2, from the **active car wash**), `size`
+(`sm` for list/board chips, `md` for detail/intake). The accessible name
+(`aria-label`) is always the raw plate string. Country/region is **never** baked
+into the app — it is a car-wash attribute (`car_washes.country`).
+
+A registry (`PLATE_FORMATS`, keyed by country code) maps a country to a
+`PlateFormat` — an inline-SVG flag, a `match(plate)` test, and a `render(plate)`
+splitter. Kazakhstan (`KZ`) is implemented: a flag + `KZ` band, the registration
+body (`777 ABC`), and the 2-digit region (`02`). If the car wash's country has no
+registered format, or the plate doesn't match it, the component falls back to a
+clean unsegmented generic plate.
+
+### Adding a license plate country
+
+1. Implement a `PlateFormat` in `license-plate.tsx`: an inline-SVG `Flag`
+   (national colors are allowed inside the SVG — they're the flag's identity, not
+   theme chrome), a `match(plate)` regex over the normalized (spaceless, upper)
+   plate, and a `render(plate)` that returns `PlateSegments`. Add a render branch
+   if the layout differs from the existing `kz` / `plain` shapes.
+2. Register it in `PLATE_FORMATS` under its ISO 3166-1 alpha-2 code.
+3. Set `car_washes.country` for washes in that country (it flows to the web via
+   `/me` → the active car wash). No call sites change — they already pass the
+   active car wash's `country`.
+4. Add parse + fallback cases to `license-plate.test.ts`.
+
+`RU` and `IL` have documented stubs in the registry comment and currently route
+to the generic fallback; enabling them is exactly the steps above.
