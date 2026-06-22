@@ -4,6 +4,7 @@ import { Clock, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { LicensePlate } from "@/components/license-plate";
 import { StatusBadge } from "@/components/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,6 +25,8 @@ interface Props {
   queue: Order[];
   currency: string;
   timeZone: string;
+  /** ISO 3166-1 alpha-2 country of the active car wash; drives the plate format. */
+  country: string;
 }
 
 /**
@@ -37,6 +40,7 @@ export function BoxCard({
   queue,
   currency,
   timeZone,
+  country,
 }: Props) {
   const tBoard = useTranslations("board");
   const tBox = useTranslations("boxStatus");
@@ -78,10 +82,18 @@ export function BoxCard({
         <div className="mt-4 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate font-mono text-lg font-semibold tracking-tight">
-                {activeOrder.plate ?? tBoard("plateUnknown")}
-              </p>
-              <p className="text-muted-foreground font-mono text-xs">
+              {activeOrder.plate ? (
+                <LicensePlate
+                  plate={activeOrder.plate}
+                  country={country}
+                  size="md"
+                />
+              ) : (
+                <p className="truncate font-mono text-lg font-semibold tracking-tight">
+                  {tBoard("plateUnknown")}
+                </p>
+              )}
+              <p className="text-muted-foreground mt-1 font-mono text-xs">
                 {tBoard("orderNumber", { number: activeOrder.number })}
               </p>
             </div>
@@ -166,9 +178,15 @@ export function BoxCard({
                 key={order.id}
                 className="bg-muted/50 inline-flex max-w-full items-center gap-1.5 rounded-lg border px-2 py-1 text-xs"
               >
-                <span className="truncate">
-                  {order.plate ?? tBoard("plateUnknown")}
-                </span>
+                {order.plate ? (
+                  <LicensePlate
+                    plate={order.plate}
+                    country={country}
+                    size="sm"
+                  />
+                ) : (
+                  <span className="truncate">{tBoard("plateUnknown")}</span>
+                )}
                 <span className="text-muted-foreground font-mono">
                   {tBoard("orderNumberShort", { number: order.number })}
                 </span>

@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { LicensePlate } from "@/components/license-plate";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -67,6 +68,7 @@ export function OrderIntakeForm() {
   const { activeCarWash, hasCapability } = useTenant();
   const carWashId = activeCarWash?.id ?? null;
   const currency = activeCarWash?.currency ?? "";
+  const country = activeCarWash?.country ?? null;
 
   const router = useRouter();
   const t = useTranslations("intake");
@@ -152,6 +154,7 @@ export function OrderIntakeForm() {
   const packageId = form.watch("packageId");
   const discountMajor = form.watch("discountMajor");
   const boxId = form.watch("boxId");
+  const plate = form.watch("plate");
 
   const sPriceMap = useMemo(
     () => servicePriceMap(servicePrices.data ?? [], carTypeId || null),
@@ -647,6 +650,16 @@ export function OrderIntakeForm() {
         <div className="lg:sticky lg:top-6 lg:self-start">
           <Card className="gap-4 p-5">
             <SectionTitle>{t("summary")}</SectionTitle>
+
+            {plate.trim() ? (
+              <div className="flex justify-center py-1">
+                <LicensePlate
+                  plate={plate.trim()}
+                  country={country}
+                  size="md"
+                />
+              </div>
+            ) : null}
 
             <div className="grid gap-3">
               <FormField

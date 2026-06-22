@@ -124,6 +124,7 @@ export function BoxesBoard() {
               queue={entry?.queue ?? []}
               currency={activeCarWash.currency}
               timeZone={activeCarWash.timezone}
+              country={activeCarWash.country}
             />
           );
         })}
