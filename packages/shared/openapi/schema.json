@@ -237,6 +237,10 @@
       },
       "CarWashOut": {
         "properties": {
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
           "currency": {
             "title": "Currency",
             "type": "string"
@@ -259,7 +263,8 @@
           "id",
           "name",
           "currency",
-          "timezone"
+          "timezone",
+          "country"
         ],
         "title": "CarWashOut",
         "type": "object"
