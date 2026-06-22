@@ -629,6 +629,8 @@ export interface components {
         };
         /** CarWashOut */
         CarWashOut: {
+            /** Country */
+            country: string;
             /** Currency */
             currency: string;
             /**
