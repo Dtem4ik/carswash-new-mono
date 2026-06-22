@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { LicensePlate } from "@/components/license-plate";
 import { StatusBadge } from "@/components/status-badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -56,6 +57,7 @@ export function OrdersTable() {
   const carWashId = activeCarWash?.id ?? null;
   const currency = activeCarWash?.currency ?? "";
   const timeZone = activeCarWash?.timezone ?? "UTC";
+  const country = activeCarWash?.country ?? null;
 
   const router = useRouter();
   const t = useTranslations("orders");
@@ -266,10 +268,16 @@ export function OrdersTable() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-mono">
-                          {order.plate ?? t("noPlate")}
-                        </span>
+                      <div className="flex flex-col items-start gap-1">
+                        {order.plate ? (
+                          <LicensePlate
+                            plate={order.plate}
+                            country={country}
+                            size="sm"
+                          />
+                        ) : (
+                          <span className="font-mono">{t("noPlate")}</span>
+                        )}
                         <span className="text-muted-foreground text-xs">
                           {[order.car_brand, order.car_model]
                             .filter(Boolean)

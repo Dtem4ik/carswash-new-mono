@@ -4,6 +4,7 @@ import { ArrowLeft, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { LicensePlate } from "@/components/license-plate";
 import { RecordPaymentDialog } from "@/components/orders/record-payment-dialog";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
   const carWashId = activeCarWash?.id ?? null;
   const currency = activeCarWash?.currency ?? "";
   const timeZone = activeCarWash?.timezone ?? "UTC";
+  const country = activeCarWash?.country ?? null;
 
   const t = useTranslations("orderDetail");
   const tStatus = useTranslations("orderStatus");
@@ -172,9 +174,13 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             label={tPay(o.payment_status)}
           />
         </div>
-        <div className="text-muted-foreground text-sm">
-          <span className="font-mono">{o.plate ?? "—"}</span>
-          {o.client_name ? <span> · {o.client_name}</span> : null}
+        <div className="text-muted-foreground flex items-center gap-2 text-sm">
+          {o.plate ? (
+            <LicensePlate plate={o.plate} country={country} size="md" />
+          ) : (
+            <span className="font-mono">—</span>
+          )}
+          {o.client_name ? <span>· {o.client_name}</span> : null}
         </div>
       </div>
 
