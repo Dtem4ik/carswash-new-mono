@@ -40,6 +40,9 @@ class CarWash(Base):
     timezone: Mapped[str] = mapped_column(String(64), nullable=False)
     # ISO 4217 currency for this location; orders snapshot it at sale time.
     currency: Mapped[str] = mapped_column(CHAR(3), nullable=False)
+    # ISO 3166-1 alpha-2 country code; drives country-aware presentation at the
+    # edge (e.g. the license-plate format). Defaults to KZ for existing rows.
+    country: Mapped[str] = mapped_column(CHAR(2), nullable=False, server_default="KZ")
     address: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
     created_at: Mapped[datetime.datetime] = created_at_col()
