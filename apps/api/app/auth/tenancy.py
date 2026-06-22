@@ -30,6 +30,7 @@ class CarWashRef:
     name: str
     currency: str
     timezone: str
+    country: str
 
 
 @dataclass(frozen=True)
@@ -127,7 +128,13 @@ async def build_tenant_context(
         role = MembershipRole.washer  # placeholder; resolved after active is known
 
     car_washes = tuple(
-        CarWashRef(id=cw.id, name=cw.name, currency=cw.currency, timezone=cw.timezone)
+        CarWashRef(
+            id=cw.id,
+            name=cw.name,
+            currency=cw.currency,
+            timezone=cw.timezone,
+            country=cw.country,
+        )
         for cw in rows
     )
     accessible_ids = {cw.id for cw in car_washes}
