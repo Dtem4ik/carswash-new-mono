@@ -36,6 +36,8 @@ class CarWashOut(BaseModel):
     name: str
     currency: str
     timezone: str
+    # ISO 3166-1 alpha-2 country code; the web localizes presentation from it.
+    country: str
 
 
 class MeResponse(BaseModel):
@@ -63,7 +65,13 @@ async def get_me(ctx: TenantContext = Depends(get_tenant_context)) -> MeResponse
         ),
         role=ctx.role,
         accessible_car_washes=[
-            CarWashOut(id=cw.id, name=cw.name, currency=cw.currency, timezone=cw.timezone)
+            CarWashOut(
+                id=cw.id,
+                name=cw.name,
+                currency=cw.currency,
+                timezone=cw.timezone,
+                country=cw.country,
+            )
             for cw in ctx.car_washes
         ],
         active_car_wash_id=ctx.active_car_wash_id,

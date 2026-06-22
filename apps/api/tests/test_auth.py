@@ -149,6 +149,8 @@ def test_me_owner_sees_all_car_washes() -> None:
     names = {cw["name"] for cw in body["accessible_car_washes"]}
     assert {"Almaty Central", "Aqtobe West"} <= names
     assert "pricing.edit" in body["capabilities"]
+    # Each accessible car wash carries an ISO 3166-1 alpha-2 country (seeded KZ).
+    assert all(cw["country"] == "KZ" for cw in body["accessible_car_washes"])
 
 
 @needs_db
