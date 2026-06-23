@@ -109,3 +109,16 @@ async def archive_box(
     await session.commit()
     await session.refresh(obj)
     return obj
+
+
+@router.post("/boxes/{box_id}/restore", response_model=BoxOut, dependencies=[Depends(_manage)])
+async def restore_box(
+    box_id: uuid.UUID,
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> Box:
+    obj = await _box_or_404(session, box_id, active_car_wash(ctx))
+    obj.is_active = True
+    await session.commit()
+    await session.refresh(obj)
+    return obj
