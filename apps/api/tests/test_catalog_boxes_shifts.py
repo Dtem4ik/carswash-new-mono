@@ -301,6 +301,74 @@ def test_archive_hides_without_deleting() -> None:
     assert ct_id in {c["id"] for c in with_inactive}
 
 
+# --- archive → restore round-trip ---------------------------------------------
+
+
+def test_restore_reactivates_car_type() -> None:
+    h = _headers(IDS["owner_a"])
+    ct_id = client.post("/car-types", json={"name": "Restorable CT"}, headers=h).json()["id"]
+
+    client.post(f"/car-types/{ct_id}/archive", headers=h)
+    assert ct_id not in {c["id"] for c in client.get("/car-types", headers=h).json()}
+
+    restored = client.post(f"/car-types/{ct_id}/restore", headers=h)
+    assert restored.status_code == 200 and restored.json()["is_active"] is True
+    assert ct_id in {c["id"] for c in client.get("/car-types", headers=h).json()}
+
+
+def test_restore_reactivates_service() -> None:
+    h = _headers(IDS["owner_a"])
+    svc_id = client.post("/services", json={"name": "Restorable Svc"}, headers=h).json()["id"]
+
+    client.post(f"/services/{svc_id}/archive", headers=h)
+    assert svc_id not in {s["id"] for s in client.get("/services", headers=h).json()}
+
+    restored = client.post(f"/services/{svc_id}/restore", headers=h)
+    assert restored.status_code == 200 and restored.json()["is_active"] is True
+    assert svc_id in {s["id"] for s in client.get("/services", headers=h).json()}
+
+
+def test_restore_reactivates_package() -> None:
+    h = _headers(IDS["owner_a"])
+    pkg_id = client.post("/packages", json={"name": "Restorable Pkg"}, headers=h).json()["id"]
+
+    client.post(f"/packages/{pkg_id}/archive", headers=h)
+    assert pkg_id not in {p["id"] for p in client.get("/packages", headers=h).json()}
+
+    restored = client.post(f"/packages/{pkg_id}/restore", headers=h)
+    assert restored.status_code == 200 and restored.json()["is_active"] is True
+    assert pkg_id in {p["id"] for p in client.get("/packages", headers=h).json()}
+
+
+def test_restore_reactivates_box() -> None:
+    h = _headers(IDS["owner_a"], IDS["cw_a1"])
+    box_id = client.post("/boxes", json={"name": "Restorable Box"}, headers=h).json()["id"]
+
+    client.post(f"/boxes/{box_id}/archive", headers=h)
+    assert box_id not in {b["id"] for b in client.get("/boxes", headers=h).json()}
+
+    restored = client.post(f"/boxes/{box_id}/restore", headers=h)
+    assert restored.status_code == 200 and restored.json()["is_active"] is True
+    assert box_id in {b["id"] for b in client.get("/boxes", headers=h).json()}
+
+
+def test_washer_cannot_restore() -> None:
+    h = _headers(IDS["owner_a"])
+    ct_id = client.post("/car-types", json={"name": "Guarded CT"}, headers=h).json()["id"]
+    client.post(f"/car-types/{ct_id}/archive", headers=h)
+    resp = client.post(f"/car-types/{ct_id}/restore", headers=_headers(IDS["washer_a"]))
+    assert resp.status_code == 403
+
+
+def test_cannot_restore_other_orgs_resource() -> None:
+    # Archive org B's seeded car type as its own owner, then fail to restore it as A.
+    client.post(f"/car-types/{IDS['ct_b']}/archive", headers=_headers(IDS["owner_b"]))
+    resp = client.post(f"/car-types/{IDS['ct_b']}/restore", headers=_headers(IDS["owner_a"]))
+    assert resp.status_code == 404
+    # Clean up: restore it for B so the seeded row stays active.
+    client.post(f"/car-types/{IDS['ct_b']}/restore", headers=_headers(IDS["owner_b"]))
+
+
 # --- single open shift --------------------------------------------------------
 
 
