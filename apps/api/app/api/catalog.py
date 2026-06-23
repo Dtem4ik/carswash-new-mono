@@ -111,6 +111,23 @@ async def archive_car_type(
     return obj
 
 
+@router.post(
+    "/car-types/{car_type_id}/restore", response_model=CarTypeOut, dependencies=[Depends(_manage)]
+)
+async def restore_car_type(
+    car_type_id: uuid.UUID,
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> CarType:
+    obj = await session.get(CarType, car_type_id)
+    if obj is None or obj.organization_id != ctx.organization.id:
+        raise not_found()
+    obj.is_active = True
+    await session.commit()
+    await session.refresh(obj)
+    return obj
+
+
 # --- services -----------------------------------------------------------------
 
 
@@ -183,6 +200,23 @@ async def archive_service(
     if obj is None or obj.organization_id != ctx.organization.id:
         raise not_found()
     obj.is_active = False
+    await session.commit()
+    await session.refresh(obj)
+    return obj
+
+
+@router.post(
+    "/services/{service_id}/restore", response_model=ServiceOut, dependencies=[Depends(_manage)]
+)
+async def restore_service(
+    service_id: uuid.UUID,
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> Service:
+    obj = await session.get(Service, service_id)
+    if obj is None or obj.organization_id != ctx.organization.id:
+        raise not_found()
+    obj.is_active = True
     await session.commit()
     await session.refresh(obj)
     return obj
@@ -296,6 +330,24 @@ async def archive_package(
 ) -> PackageOut:
     obj = await _package_or_404(session, package_id, ctx.organization.id)
     obj.is_active = False
+    await session.commit()
+    await session.refresh(obj)
+    grouped = await _service_ids_by_package(session, [obj.id])
+    return PackageOut(
+        id=obj.id, name=obj.name, is_active=obj.is_active, service_ids=grouped.get(obj.id, [])
+    )
+
+
+@router.post(
+    "/packages/{package_id}/restore", response_model=PackageOut, dependencies=[Depends(_manage)]
+)
+async def restore_package(
+    package_id: uuid.UUID,
+    ctx: TenantContext = Depends(get_tenant_context),
+    session: AsyncSession = Depends(get_session),
+) -> PackageOut:
+    obj = await _package_or_404(session, package_id, ctx.organization.id)
+    obj.is_active = True
     await session.commit()
     await session.refresh(obj)
     grouped = await _service_ids_by_package(session, [obj.id])
