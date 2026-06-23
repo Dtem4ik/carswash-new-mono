@@ -2220,6 +2220,70 @@
         ]
       }
     },
+    "/boxes/{box_id}/restore": {
+      "post": {
+        "operationId": "restore_box_boxes__box_id__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "box_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Box Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoxOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Restore Box",
+        "tags": [
+          "boxes"
+        ]
+      }
+    },
     "/car-types": {
       "get": {
         "operationId": "list_car_types_car_types_get",
@@ -2483,6 +2547,70 @@
           }
         ],
         "summary": "Archive Car Type",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/car-types/{car_type_id}/restore": {
+      "post": {
+        "operationId": "restore_car_type_car_types__car_type_id__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "car_type_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Car Type Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarTypeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Restore Car Type",
         "tags": [
           "catalog"
         ]
@@ -3695,6 +3823,70 @@
         ]
       }
     },
+    "/packages/{package_id}/restore": {
+      "post": {
+        "operationId": "restore_package_packages__package_id__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "package_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Package Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Restore Package",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/packages/{package_id}/services": {
       "put": {
         "operationId": "set_package_services_packages__package_id__services_put",
@@ -4152,6 +4344,70 @@
           }
         ],
         "summary": "Archive Service",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/services/{service_id}/restore": {
+      "post": {
+        "operationId": "restore_service_services__service_id__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Service Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Car-Wash-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Car-Wash-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Restore Service",
         "tags": [
           "catalog"
         ]

@@ -56,6 +56,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/boxes/{box_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Box */
+        post: operations["restore_box_boxes__box_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/car-types": {
         parameters: {
             query?: never;
@@ -102,6 +119,23 @@ export interface paths {
         put?: never;
         /** Archive Car Type */
         post: operations["archive_car_type_car_types__car_type_id__archive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/car-types/{car_type_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Car Type */
+        post: operations["restore_car_type_car_types__car_type_id__restore_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -353,6 +387,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/packages/{package_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Package */
+        post: operations["restore_package_packages__package_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/packages/{package_id}/services": {
         parameters: {
             query?: never;
@@ -434,6 +485,23 @@ export interface paths {
         put?: never;
         /** Archive Service */
         post: operations["archive_service_services__service_id__archive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/services/{service_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Service */
+        post: operations["restore_service_services__service_id__restore_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1437,6 +1505,39 @@ export interface operations {
             };
         };
     };
+    restore_box_boxes__box_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                box_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoxOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_car_types_car_types_get: {
         parameters: {
             query?: {
@@ -1543,6 +1644,39 @@ export interface operations {
         };
     };
     archive_car_type_car_types__car_type_id__archive_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                car_type_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CarTypeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_car_type_car_types__car_type_id__restore_post: {
         parameters: {
             query?: never;
             header?: {
@@ -2173,6 +2307,39 @@ export interface operations {
             };
         };
     };
+    restore_package_packages__package_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                package_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_package_services_packages__package_id__services_put: {
         parameters: {
             query?: never;
@@ -2382,6 +2549,39 @@ export interface operations {
         };
     };
     archive_service_services__service_id__archive_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_service_services__service_id__restore_post: {
         parameters: {
             query?: never;
             header?: {
