@@ -16,26 +16,27 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { hasAdminAccess } from "@/lib/admin-access";
+import { useTenant } from "@/lib/tenant-context";
 
 interface NavItem {
   key: "board" | "orders" | "shift" | "admin";
   href: string;
   icon: LucideIcon;
-  /** Board/orders/shift ship in Phase 4a/4b; admin lands in 4c and stays disabled. */
-  enabled: boolean;
+  /** Admin is capability-gated (manager+); a washer never sees it. */
+  requiresAdmin?: boolean;
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { key: "board", href: "/board", icon: LayoutGrid, enabled: true },
-  { key: "orders", href: "/orders", icon: Receipt, enabled: true },
-  { key: "shift", href: "/shift", icon: Timer, enabled: true },
-  { key: "admin", href: "/admin", icon: Settings, enabled: false },
+  { key: "board", href: "/board", icon: LayoutGrid },
+  { key: "orders", href: "/orders", icon: Receipt },
+  { key: "shift", href: "/shift", icon: Timer },
+  { key: "admin", href: "/admin", icon: Settings, requiresAdmin: true },
 ];
 
 /**
@@ -48,6 +49,8 @@ export function AppSidebar() {
   const pathname = usePathname();
   const t = useTranslations("nav");
   const { isMobile, setOpenMobile } = useSidebar();
+  const { hasCapability } = useTenant();
+  const canAdmin = hasAdminAccess(hasCapability);
 
   function handleNavigate() {
     if (isMobile) setOpenMobile(false);
@@ -60,28 +63,11 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu aria-label={t("sectionLabel")}>
               {NAV_ITEMS.map((item) => {
+                if (item.requiresAdmin && !canAdmin) return null;
                 const Icon = item.icon;
                 const active =
                   pathname === item.href ||
                   pathname.startsWith(`${item.href}/`);
-
-                if (!item.enabled) {
-                  return (
-                    <SidebarMenuItem key={item.key}>
-                      <SidebarMenuButton
-                        aria-disabled="true"
-                        tooltip={t(item.key)}
-                        className="cursor-not-allowed opacity-60"
-                      >
-                        <Icon />
-                        <span>{t(item.key)}</span>
-                      </SidebarMenuButton>
-                      <SidebarMenuBadge className="text-[10px] tracking-wide uppercase">
-                        {t("comingSoon")}
-                      </SidebarMenuBadge>
-                    </SidebarMenuItem>
-                  );
-                }
 
                 return (
                   <SidebarMenuItem key={item.key}>
