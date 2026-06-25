@@ -60,6 +60,7 @@ IDS = {
     "corp_client": _id("corp_client"),
     "corp_car": _id("corp_car"),
     "corp_cc": _id("corp_cc"),
+    "lone_car": _id("lone_car"),
     "shift": _id("shift"),
 }
 
@@ -213,6 +214,14 @@ def _setup(conn: sa.Connection) -> None:
     conn.execute(
         sa.text("INSERT INTO client_cars (id, client_id, car_id) VALUES (:id, :cl, :car)"),
         {"id": IDS["corp_cc"], "cl": IDS["corp_client"], "car": IDS["corp_car"]},
+    )
+    # A car with no client link, to prove the lookup returns an empty client list.
+    conn.execute(
+        sa.text(
+            "INSERT INTO cars (id, organization_id, plate, car_type_id) VALUES"
+            " (:id, :a, 'LONE 7', :ct)"
+        ),
+        {"id": IDS["lone_car"], "a": IDS["org"], "ct": IDS["ct"]},
     )
 
 
@@ -432,6 +441,24 @@ def test_registered_read_resolves_car_and_client() -> None:
     assert names == ["Olga Kim", "Sergey Lee"]
     # Detail washers also carry the payroll snapshot fields.
     assert all("share_bps" in w and "earned_amount_minor" in w for w in detail["washers"])
+
+
+def test_car_lookup_includes_linked_client() -> None:
+    # The corporate car "CORP 1" is linked to "Acme Taxi" in the fixture, so a
+    # plate lookup returns the client inline for intake to autofill.
+    cars = client.get("/cars", params={"plate": "CORP 1"}, headers=_owner()).json()
+    match = [c for c in cars if c["id"] == str(IDS["corp_car"])]
+    assert len(match) == 1
+    clients = match[0]["clients"]
+    assert [c["name"] for c in clients] == ["Acme Taxi"]
+    assert clients[0]["kind"] == "corporate"
+
+
+def test_car_lookup_unlinked_car_has_no_clients() -> None:
+    # A car with no client link returns an empty client list (walk-in vehicle).
+    cars = client.get("/cars", params={"plate": "LONE 7"}, headers=_owner()).json()
+    match = [c for c in cars if c["id"] == str(IDS["lone_car"])]
+    assert len(match) == 1 and match[0]["clients"] == []
 
 
 def test_staff_lookup_lists_assignable_members_with_names() -> None:
