@@ -210,7 +210,29 @@ Two complementary layers:
   `car_wash_id` and gated server-side by RLS.
 - FastAPI does **not** manage websockets. This removes the entire hand-rolled
   Socket.io layer of the old app and keeps the API stateless and serverless-friendly.
-- Optimistic UI on the client + realtime reconciliation.
+
+### Optimistic UI + realtime reconciliation
+
+Order actions (create / close / cancel / record-payment) must feel **instant**,
+so they do not wait on the server round trip:
+
+- The mutation's `onMutate` writes the change into the TanStack Query caches
+  immediately — the board's active-orders list, the boxes list, and the open
+  order detail — via pure reducers in `apps/web/src/lib/order-cache.ts` (create
+  inserts an optimistic row with a client-minted `optimistic-…` id and flips the
+  box busy; close/cancel remove the order and promote the next queued order;
+  payment appends and re-derives the payment status).
+- **Reconciliation and rollback run on the global TanStack mutation cache**, not
+  per-hook, so they complete even after the component that fired the mutation has
+  unmounted (intake navigates to the board on submit). On success the optimistic
+  row is replaced by the authoritative server row; on error the cache snapshot is
+  restored and a localized toast is shown.
+- **Realtime PATCHES the cache by id** rather than refetching: a change to an
+  order already in the cache overlays its scalar fields (and so de-dupes our own
+  echo — no flicker, no doubles). A change it cannot render from the raw row
+  (a new order from another client, which lacks the joined washers/client) marks
+  itself unhandled and schedules **one debounced background refetch** that
+  reconciles without a visible reload.
 
 ---
 
@@ -258,6 +280,27 @@ First-class, from day one. The system must run for any country/language/currency
 Domain logic depends only on a Postgres connection string and the OpenAPI
 contract — not on Supabase SDKs — so moving to a VPS is an env + infra change,
 not a rewrite.
+
+### Runtime DB pooling
+
+The API is pinned to `fra1`, next to the Supabase DB, so DB work is sub-50ms in
+production and the user→Frankfurt network dominates. The async engine is built
+**once** in the FastAPI lifespan handler and reused across requests (and, with
+Vercel **Fluid Compute** — `apps/api/vercel.json` `"fluid": true` — across
+invocations of a warm instance), never per request. Two strategies are
+selectable via `DB_POOL_MODE`:
+
+- **`warm`** (default) — a kept-alive pool (`pool_pre_ping` + `pool_recycle`)
+  over the **direct/session** connection (`POSTGRES_URL_NON_POOLING`), with
+  prepared statements enabled. Best for a persistent server and for Fluid
+  Compute. `pool_pre_ping` costs one round trip per checkout — negligible next to
+  a co-located DB, noticeable only from a remote dev laptop.
+- **`serverless`** — the Supavisor **transaction pooler** (`POSTGRES_URL`) with
+  `NullPool` and prepared statements disabled (`statement_cache_size=0`), for
+  short-lived stateless invocations that should hold no connection.
+
+Alembic is unaffected: DDL always runs over the direct URL via the sync psycopg
+driver (see `migrations/env.py`).
 
 ---
 
