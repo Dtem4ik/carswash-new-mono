@@ -2,14 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Pencil, TriangleAlert, UserPlus, X } from "lucide-react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { LicensePlate } from "@/components/license-plate";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -42,20 +41,15 @@ import {
   useStaff,
 } from "@/hooks/use-catalog";
 import { type OrderCreate, useCreateOrder } from "@/hooks/use-orders";
-import {
-  extractErrorCode,
-  resolveErrorMessage,
-  toErrorTranslator,
-} from "@/lib/errors";
 import { useFormatters } from "@/lib/format";
 import { autofillFromCar, buildIntake, normalizePlate } from "@/lib/intake";
+import { newOptimisticId } from "@/lib/order-cache";
 import {
   computeOrderPreview,
   packagePriceMap,
   servicePriceMap,
 } from "@/lib/pricing";
 import { useTenant } from "@/lib/tenant-context";
-import { cn } from "@/lib/utils";
 
 const CLIENT_KINDS = ["regular", "corporate"] as const;
 const DISCOUNT_TYPES = ["manual", "loyalty", "promo", "subscription"] as const;
@@ -243,8 +237,6 @@ export function OrderIntakeForm() {
     }
   }, [sPriceMap, pPriceMap, form]);
 
-  const [submitErrorCode, setSubmitErrorCode] = useState<string | null>(null);
-
   function applyClient(client: Client | null) {
     if (client) {
       form.setValue("clientName", client.name);
@@ -313,8 +305,7 @@ export function OrderIntakeForm() {
     );
   }
 
-  async function onSubmit(values: Values) {
-    setSubmitErrorCode(null);
+  function onSubmit(values: Values) {
     const hasClient = picked ? picked.client != null : showClient;
     const body: OrderCreate = {
       car_type_id: values.carTypeId,
@@ -341,12 +332,39 @@ export function OrderIntakeForm() {
         type: values.discountType,
       };
     }
-    try {
-      await createOrder.mutateAsync(body);
-      router.push("/board");
-    } catch (error) {
-      setSubmitErrorCode(extractErrorCode(error) ?? "unknown");
-    }
+
+    // Reflect the new order on the board the instant it is submitted, then
+    // navigate. The global mutation cache reconciles with the server response
+    // (swapping this temp row for the real one) and rolls back + toasts on
+    // error (see lib/query-client.ts) — even though this form has unmounted.
+    const targetBox = (boxes.data ?? []).find((b) => b.id === values.boxId);
+    const washerNames = new Map(
+      (staff.data ?? []).map((s) => [s.user_id, s.name ?? null]),
+    );
+    createOrder.mutate({
+      body,
+      optimistic: {
+        id: newOptimisticId(),
+        boxId: values.boxId,
+        carWashId: carWashId ?? "",
+        carTypeId: values.carTypeId,
+        plate: values.plate.trim() || null,
+        clientName: hasClient ? values.clientName.trim() || null : null,
+        clientPhone: hasClient ? values.clientPhone.trim() || null : null,
+        totalMinor: preview.totalMinor,
+        subtotalMinor: preview.subtotalMinor,
+        discountMinor: preview.discountMinor,
+        currency,
+        boxFree: targetBox?.status === "free",
+        corporate: hasClient && values.clientKind === "corporate",
+        washers: values.washerUserIds.map((id) => ({
+          user_id: id,
+          name: washerNames.get(id) ?? null,
+        })),
+        nowIso: new Date().toISOString(),
+      },
+    });
+    router.push("/board");
   }
 
   if (!activeCarWash) {
@@ -944,31 +962,6 @@ export function OrderIntakeForm() {
                 </span>
               </Row>
             </dl>
-
-            {submitErrorCode ? (
-              <div
-                role="alert"
-                className="border-destructive/30 bg-destructive/5 text-destructive space-y-2 rounded-lg border p-3 text-sm"
-              >
-                <p>
-                  {resolveErrorMessage(
-                    toErrorTranslator(tErrors),
-                    submitErrorCode,
-                  )}
-                </p>
-                {submitErrorCode === "shift.not_open" ? (
-                  <Link
-                    href="/shift"
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "h-9",
-                    )}
-                  >
-                    {t("openShift")}
-                  </Link>
-                ) : null}
-              </div>
-            ) : null}
 
             <Button
               type="submit"
