@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     postgres_url: str | None = None
     postgres_url_non_pooling: str | None = None
 
+    # Runtime connection strategy (see app/db.py):
+    # - "warm" (default): a long-lived, kept-warm pool over the direct/session
+    #   connection, with prepared statements enabled. Best for a persistent
+    #   server and for Vercel Fluid Compute, where instances stay warm and reuse
+    #   the pool across invocations.
+    # - "serverless": the Supavisor transaction pooler with NullPool and
+    #   prepared statements disabled, for short-lived stateless invocations.
+    db_pool_mode: str = "warm"
+
     # Supabase project URL — used to derive the JWKS endpoint and admin API base.
     # Accepts the SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL env name.
     supabase_url: str | None = Field(
