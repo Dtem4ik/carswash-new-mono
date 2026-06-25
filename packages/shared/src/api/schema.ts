@@ -655,6 +655,11 @@ export interface components {
              */
             car_type_id: string;
             /**
+             * Clients
+             * @default []
+             */
+            clients: components["schemas"]["ClientOut"][];
+            /**
              * Id
              * Format: uuid
              */
