@@ -6,13 +6,30 @@ codes only — never localized prose (see ARCHITECTURE.md §8). The OpenAPI sche
 is the single source of truth for the web's generated client (packages/shared).
 """
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import boxes, catalog, lookup, me, orders, pricing, shifts
 from app.config import settings
+from app.deps import dispose_engine, init_engine
 
-app = FastAPI(title=settings.app_name, version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Warm the DB pool once at startup and reuse it across requests; dispose on
+    shutdown. Skipped when no database is configured (CI / OpenAPI export)."""
+    if settings.postgres_url or settings.postgres_url_non_pooling:
+        init_engine()
+    try:
+        yield
+    finally:
+        await dispose_engine()
+
+
+app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
 
 # The web calls the API cross-origin with a Bearer token + X-Car-Wash-Id header.
 # MVP: allow all origins (no cookies are used cross-site); tighten in Phase 7.
