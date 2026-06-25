@@ -127,6 +127,14 @@
             "title": "Car Type Id",
             "type": "string"
           },
+          "clients": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ClientOut"
+            },
+            "title": "Clients",
+            "type": "array"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
