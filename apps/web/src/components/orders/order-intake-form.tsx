@@ -1,12 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Search, TriangleAlert } from "lucide-react";
+import { Loader2, Pencil, TriangleAlert, UserPlus, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { LicensePlate } from "@/components/license-plate";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -29,12 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBoxes } from "@/hooks/use-board-data";
 import {
+  type Car,
+  type Client,
   useCarSearch,
   useCarTypes,
-  useClientSearch,
   usePackagePrices,
   usePackages,
   useServicePrices,
@@ -48,6 +48,7 @@ import {
   toErrorTranslator,
 } from "@/lib/errors";
 import { useFormatters } from "@/lib/format";
+import { autofillFromCar, buildIntake, normalizePlate } from "@/lib/intake";
 import {
   computeOrderPreview,
   packagePriceMap,
@@ -59,10 +60,17 @@ import { cn } from "@/lib/utils";
 const CLIENT_KINDS = ["regular", "corporate"] as const;
 const DISCOUNT_TYPES = ["manual", "loyalty", "promo", "subscription"] as const;
 
+/** A car picked from the plate lookup, plus the chosen linked client (if any). */
+interface PickedVehicle {
+  car: Car;
+  client: Client | null;
+}
+
 /**
- * Order intake: vehicle (walk-in or registered lookup), priced services and/or a
- * package with a live client-side preview, discount, washers, and a box. The
- * server stays authoritative on submit; API error codes map to inline messages.
+ * Plate-first order intake: one smart plate field drives a debounced lookup.
+ * A match autofills the returning customer and car type (straight to services);
+ * a new plate is a walk-in needing only a car type, with client details
+ * optional and progressive. The box can be preselected via ?box from the board.
  */
 export function OrderIntakeForm() {
   const { activeCarWash, hasCapability } = useTenant();
@@ -71,6 +79,9 @@ export function OrderIntakeForm() {
   const country = activeCarWash?.country ?? null;
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const boxParam = searchParams.get("box");
+
   const t = useTranslations("intake");
   const tErrors = useTranslations("errors");
   const tClientKind = useTranslations("clientKind");
@@ -91,7 +102,6 @@ export function OrderIntakeForm() {
     () =>
       z
         .object({
-          mode: z.enum(["walkin", "registered"]),
           carTypeId: z.string().min(1, t("selectCarType")),
           boxId: z.string().min(1, t("selectBox")),
           plate: z.string(),
@@ -131,7 +141,6 @@ export function OrderIntakeForm() {
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
-      mode: "walkin",
       carTypeId: "",
       boxId: "",
       plate: "",
@@ -148,13 +157,43 @@ export function OrderIntakeForm() {
     },
   });
 
-  const mode = form.watch("mode");
   const carTypeId = form.watch("carTypeId");
   const lines = form.watch("lines");
   const packageId = form.watch("packageId");
   const discountMajor = form.watch("discountMajor");
   const boxId = form.watch("boxId");
   const plate = form.watch("plate");
+
+  // Plate-first lookup: debounce the plate into a lookup term.
+  const [lookupTerm, setLookupTerm] = useState("");
+  useEffect(() => {
+    const id = setTimeout(() => setLookupTerm(plate.trim()), 250);
+    return () => clearTimeout(id);
+  }, [plate]);
+  const carSearch = useCarSearch(carWashId, lookupTerm);
+  const matches = lookupTerm ? (carSearch.data ?? []) : [];
+
+  const [picked, setPicked] = useState<PickedVehicle | null>(null);
+  const [showClient, setShowClient] = useState(false);
+
+  // Editing the plate away from the picked car drops the recognized state.
+  useEffect(() => {
+    if (picked && normalizePlate(plate) !== normalizePlate(picked.car.plate)) {
+      setPicked(null);
+    }
+  }, [plate, picked]);
+
+  // Preselect the box from ?box once the boxes load; lock the picker until the
+  // operator chooses to change it. A generic intake (no ?box) shows the picker.
+  const [boxLocked, setBoxLocked] = useState(false);
+  useEffect(() => {
+    if (!boxParam || boxId) return;
+    const match = (boxes.data ?? []).find((b) => b.id === boxParam);
+    if (match) {
+      form.setValue("boxId", match.id, { shouldValidate: true });
+      setBoxLocked(true);
+    }
+  }, [boxParam, boxes.data, boxId, form]);
 
   const sPriceMap = useMemo(
     () => servicePriceMap(servicePrices.data ?? [], carTypeId || null),
@@ -206,6 +245,48 @@ export function OrderIntakeForm() {
 
   const [submitErrorCode, setSubmitErrorCode] = useState<string | null>(null);
 
+  function applyClient(client: Client | null) {
+    if (client) {
+      form.setValue("clientName", client.name);
+      form.setValue("clientPhone", client.phone ?? "");
+      form.setValue(
+        "clientKind",
+        client.kind === "corporate" ? "corporate" : "regular",
+      );
+    } else {
+      form.setValue("clientName", "");
+      form.setValue("clientPhone", "");
+      form.setValue("clientKind", "regular");
+    }
+  }
+
+  function pickCar(car: Car) {
+    const client = car.clients[0] ?? null;
+    const patch = autofillFromCar(car, client);
+    form.setValue("plate", patch.plate, { shouldValidate: true });
+    form.setValue("carTypeId", patch.carTypeId, { shouldValidate: true });
+    form.setValue("brand", patch.brand);
+    form.setValue("model", patch.model);
+    applyClient(client);
+    setPicked({ car, client });
+    setShowClient(false);
+  }
+
+  function chooseLinkedClient(clientId: string | null) {
+    if (!picked || !clientId) return;
+    const client = picked.car.clients.find((c) => c.id === clientId) ?? null;
+    applyClient(client);
+    setPicked({ car: picked.car, client });
+  }
+
+  function changeVehicle() {
+    setPicked(null);
+    applyClient(null);
+    form.setValue("brand", "");
+    form.setValue("model", "");
+    form.setValue("plate", "", { shouldValidate: false });
+  }
+
   function toggleService(id: string) {
     const cur = form.getValues("lines");
     const next = cur.some((l) => l.serviceId === id)
@@ -234,6 +315,7 @@ export function OrderIntakeForm() {
 
   async function onSubmit(values: Values) {
     setSubmitErrorCode(null);
+    const hasClient = picked ? picked.client != null : showClient;
     const body: OrderCreate = {
       car_type_id: values.carTypeId,
       box_id: values.boxId,
@@ -243,17 +325,15 @@ export function OrderIntakeForm() {
       })),
       package_id: values.packageId ?? null,
       washer_user_ids: values.washerUserIds,
-      intake:
-        values.mode === "registered"
-          ? {
-              plate: values.plate.trim(),
-              client_name: values.clientName.trim() || null,
-              client_phone: values.clientPhone.trim() || null,
-              client_kind: values.clientKind,
-              brand: values.brand.trim() || null,
-              model: values.model.trim() || null,
-            }
-          : { plate: values.plate.trim(), client_kind: "walkin" },
+      intake: buildIntake({
+        plate: values.plate,
+        clientName: values.clientName,
+        clientPhone: values.clientPhone,
+        clientKind: values.clientKind,
+        brand: values.brand,
+        model: values.model,
+        hasClient,
+      }),
     };
     if (values.discountMajor > 0) {
       body.discount = {
@@ -277,6 +357,9 @@ export function OrderIntakeForm() {
   }
 
   const selectedBox = (boxes.data ?? []).find((b) => b.id === boxId);
+  const pickedCarTypeName = (carTypes.data ?? []).find(
+    (c) => c.id === carTypeId,
+  )?.name;
 
   return (
     <Form {...form}>
@@ -290,71 +373,151 @@ export function OrderIntakeForm() {
           <Card className="gap-5 p-5">
             <SectionTitle>{t("vehicle")}</SectionTitle>
 
-            <Controller
-              control={form.control}
-              name="mode"
-              render={({ field }) => (
-                <Tabs
-                  value={field.value}
-                  onValueChange={(next) => {
-                    if (next) field.onChange(next);
-                  }}
-                >
-                  <TabsList>
-                    <TabsTrigger value="walkin">{t("walkIn")}</TabsTrigger>
-                    <TabsTrigger value="registered">
-                      {t("registered")}
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              )}
-            />
+            {picked ? (
+              <div className="space-y-4 rounded-xl border p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="bg-tone-green-bg text-tone-green-fg inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium">
+                      {t("returningCustomer")}
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="min-h-9"
+                    onClick={changeVehicle}
+                  >
+                    <Pencil />
+                    {t("changeVehicle")}
+                  </Button>
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <LicensePlate
+                    plate={picked.car.plate}
+                    country={country}
+                    size="md"
+                  />
+                  {pickedCarTypeName ? (
+                    <span className="text-muted-foreground text-sm">
+                      {pickedCarTypeName}
+                    </span>
+                  ) : null}
+                </div>
 
-            {mode === "registered" ? (
-              <ClientLookup
-                carWashId={carWashId}
-                onPick={(client) => {
-                  form.setValue("clientName", client.name);
-                  form.setValue("clientPhone", client.phone ?? "");
-                  form.setValue(
-                    "clientKind",
-                    client.kind === "corporate" ? "corporate" : "regular",
-                  );
-                }}
-              />
-            ) : null}
-
-            <PlateLookup
-              carWashId={carWashId}
-              onPick={(car) => {
-                form.setValue("plate", car.plate, { shouldValidate: true });
-                form.setValue("brand", car.brand ?? "");
-                form.setValue("model", car.model ?? "");
-                form.setValue("carTypeId", car.car_type_id, {
-                  shouldValidate: true,
-                });
-              }}
-            />
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="plate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("plate")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder={t("platePlaceholder")}
-                        className="font-mono"
-                        autoComplete="off"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                {picked.car.clients.length > 1 ? (
+                  <div className="grid gap-2">
+                    <Label htmlFor="linked-client">{t("customer")}</Label>
+                    <Select
+                      value={picked.client?.id ?? ""}
+                      onValueChange={chooseLinkedClient}
+                    >
+                      <SelectTrigger id="linked-client" className="h-9 w-full">
+                        <SelectValue>
+                          {(value) =>
+                            picked.car.clients.find((c) => c.id === value)
+                              ?.name ?? t("customer")
+                          }
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {picked.car.clients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                            {c.phone ? ` · ${c.phone}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : picked.client ? (
+                  <p className="text-sm">
+                    <span className="font-medium">{picked.client.name}</span>
+                    {picked.client.phone ? (
+                      <span className="text-muted-foreground font-mono">
+                        {" "}
+                        · {picked.client.phone}
+                      </span>
+                    ) : null}
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    {t("noLinkedClient")}
+                  </p>
                 )}
-              />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <FormField
+                  control={form.control}
+                  name="plate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("plate")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder={t("platePlaceholder")}
+                          className="h-12 font-mono text-lg"
+                          autoComplete="off"
+                        />
+                      </FormControl>
+                      <p className="text-muted-foreground text-xs">
+                        {carSearch.isFetching && lookupTerm
+                          ? t("searching")
+                          : t("plateFirstHint")}
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {matches.length > 0 ? (
+                  <div className="space-y-1.5">
+                    <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                      {t("matchingVehicles")}
+                    </p>
+                    <ul className="bg-card grid gap-1 rounded-lg border p-1">
+                      {matches.map((car) => (
+                        <li key={car.id}>
+                          <button
+                            type="button"
+                            onClick={() => pickCar(car)}
+                            className="hover:bg-accent flex w-full items-center gap-3 rounded-md px-2 py-2 text-left"
+                          >
+                            <LicensePlate
+                              plate={car.plate}
+                              country={country}
+                              size="sm"
+                            />
+                            <span className="min-w-0 flex-1 text-sm">
+                              {car.clients[0] ? (
+                                <span className="font-medium">
+                                  {car.clients[0].name}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">
+                                  {[car.brand, car.model]
+                                    .filter(Boolean)
+                                    .join(" ") || t("noLinkedClient")}
+                                </span>
+                              )}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : plate.trim() ? (
+                  <p className="text-muted-foreground text-sm">
+                    {t("newVehicle")}
+                  </p>
+                ) : null}
+              </div>
+            )}
+
+            {/* Car type: read-only chip when recognized, picker otherwise. */}
+            {picked ? null : (
               <FormField
                 control={form.control}
                 name="carTypeId"
@@ -384,92 +547,125 @@ export function OrderIntakeForm() {
                   </FormItem>
                 )}
               />
-            </div>
+            )}
 
-            {mode === "registered" ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="clientName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("clientName")}</FormLabel>
-                      <FormControl>
-                        <Input {...field} autoComplete="off" />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="clientPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("clientPhone")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          inputMode="tel"
-                          className="font-mono"
-                          autoComplete="off"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="brand"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("brand")}</FormLabel>
-                      <FormControl>
-                        <Input {...field} autoComplete="off" />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="model"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("model")}</FormLabel>
-                      <FormControl>
-                        <Input {...field} autoComplete="off" />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="clientKind"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("clientType")}</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-9 w-full">
-                            <SelectValue>
-                              {(value) => tClientKind(value as string)}
-                            </SelectValue>
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {CLIENT_KINDS.map((k) => (
-                            <SelectItem key={k} value={k}>
-                              {tClientKind(k)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-              </div>
+            {/* Optional, progressive client details for a new vehicle. */}
+            {!picked ? (
+              showClient ? (
+                <div className="space-y-4 rounded-xl border p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">
+                      {t("clientType")}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="min-h-9"
+                      onClick={() => {
+                        setShowClient(false);
+                        applyClient(null);
+                      }}
+                    >
+                      <X />
+                      {t("changeVehicle")}
+                    </Button>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="clientName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("clientName")}</FormLabel>
+                          <FormControl>
+                            <Input {...field} autoComplete="off" />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="clientPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("clientPhone")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              inputMode="tel"
+                              className="font-mono"
+                              autoComplete="off"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="brand"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("brand")}</FormLabel>
+                          <FormControl>
+                            <Input {...field} autoComplete="off" />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="model"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("model")}</FormLabel>
+                          <FormControl>
+                            <Input {...field} autoComplete="off" />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="clientKind"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("clientType")}</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-9 w-full">
+                                <SelectValue>
+                                  {(value) => tClientKind(value as string)}
+                                </SelectValue>
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {CLIENT_KINDS.map((k) => (
+                                <SelectItem key={k} value={k}>
+                                  {tClientKind(k)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11 w-full sm:w-auto"
+                  onClick={() => setShowClient(true)}
+                >
+                  <UserPlus />
+                  {t("addClient")}
+                </Button>
+              )
             ) : null}
           </Card>
 
@@ -577,34 +773,55 @@ export function OrderIntakeForm() {
           {/* Assignment -------------------------------------------------- */}
           <Card className="gap-5 p-5">
             <SectionTitle>{t("box")}</SectionTitle>
-            <FormField
-              control={form.control}
-              name="boxId"
-              render={({ field }) => (
-                <FormItem>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger className="h-9 w-full">
-                        <SelectValue placeholder={t("selectBox")}>
-                          {(value) =>
-                            (boxes.data ?? []).find((b) => b.id === value)
-                              ?.name ?? t("selectBox")
-                          }
-                        </SelectValue>
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(boxes.data ?? []).map((b) => (
-                        <SelectItem key={b.id} value={b.id}>
-                          {b.name} · {tBox(b.status)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {boxLocked && selectedBox ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
+                <div className="flex items-center gap-3">
+                  <span className="font-medium">{selectedBox.name}</span>
+                  <span className="bg-tone-blue-bg text-tone-blue-fg inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium">
+                    {t("boxFromBoard")}
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="min-h-9"
+                  onClick={() => setBoxLocked(false)}
+                >
+                  <Pencil />
+                  {t("changeBox")}
+                </Button>
+              </div>
+            ) : (
+              <FormField
+                control={form.control}
+                name="boxId"
+                render={({ field }) => (
+                  <FormItem>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="h-9 w-full">
+                          <SelectValue placeholder={t("selectBox")}>
+                            {(value) =>
+                              (boxes.data ?? []).find((b) => b.id === value)
+                                ?.name ?? t("selectBox")
+                            }
+                          </SelectValue>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(boxes.data ?? []).map((b) => (
+                          <SelectItem key={b.id} value={b.id}>
+                            {b.name} · {tBox(b.status)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             {selectedBox?.status === "busy" ? (
               <p className="text-tone-amber-fg text-sm">{t("queuedNote")}</p>
             ) : null}
@@ -802,124 +1019,6 @@ function Notice({ text }: { text: string }) {
         className="text-destructive"
       />
       <p>{text}</p>
-    </div>
-  );
-}
-
-function ClientLookup({
-  carWashId,
-  onPick,
-}: {
-  carWashId: string | null;
-  onPick: (client: {
-    name: string;
-    phone: string | null;
-    kind: string;
-  }) => void;
-}) {
-  const t = useTranslations("intake");
-  const [term, setTerm] = useState("");
-  const search = useClientSearch(carWashId, term);
-  const results = term.trim() ? (search.data ?? []) : [];
-  return (
-    <div className="space-y-2">
-      <Label htmlFor="client-search">{t("searchClient")}</Label>
-      <div className="relative">
-        <Search
-          size={16}
-          aria-hidden="true"
-          className="text-muted-foreground absolute top-1/2 left-2.5 -translate-y-1/2"
-        />
-        <Input
-          id="client-search"
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          className="pl-8"
-          autoComplete="off"
-        />
-      </div>
-      {results.length > 0 ? (
-        <ul className="bg-card grid gap-1 rounded-lg border p-1">
-          {results.map((c) => (
-            <li key={c.id}>
-              <button
-                type="button"
-                onClick={() => {
-                  onPick(c);
-                  setTerm("");
-                }}
-                className="hover:bg-accent flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm"
-              >
-                <span>{c.name}</span>
-                {c.phone ? (
-                  <span className="text-muted-foreground font-mono text-xs">
-                    {c.phone}
-                  </span>
-                ) : null}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
-  );
-}
-
-function PlateLookup({
-  carWashId,
-  onPick,
-}: {
-  carWashId: string | null;
-  onPick: (car: {
-    plate: string;
-    brand: string | null;
-    model: string | null;
-    car_type_id: string;
-  }) => void;
-}) {
-  const t = useTranslations("intake");
-  const [term, setTerm] = useState("");
-  const search = useCarSearch(carWashId, term);
-  const results = term.trim() ? (search.data ?? []) : [];
-  return (
-    <div className="space-y-2">
-      <Label htmlFor="plate-search">{t("searchPlate")}</Label>
-      <div className="relative">
-        <Search
-          size={16}
-          aria-hidden="true"
-          className="text-muted-foreground absolute top-1/2 left-2.5 -translate-y-1/2"
-        />
-        <Input
-          id="plate-search"
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          placeholder={t("platePlaceholder")}
-          className="pl-8 font-mono"
-          autoComplete="off"
-        />
-      </div>
-      {results.length > 0 ? (
-        <ul className="bg-card grid gap-1 rounded-lg border p-1">
-          {results.map((car) => (
-            <li key={car.id}>
-              <button
-                type="button"
-                onClick={() => {
-                  onPick(car);
-                  setTerm("");
-                }}
-                className="hover:bg-accent flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm"
-              >
-                <span className="font-mono">{car.plate}</span>
-                <span className="text-muted-foreground text-xs">
-                  {[car.brand, car.model].filter(Boolean).join(" ")}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
     </div>
   );
 }
