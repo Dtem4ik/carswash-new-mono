@@ -151,7 +151,7 @@ export function BoxCard({
           <p className="text-muted-foreground text-sm">{tBoard("freeHint")}</p>
           {hasCapability("orders.create") ? (
             <Link
-              href="/orders/new"
+              href={`/orders/new?box=${box.id}`}
               className={cn(
                 buttonVariants({ variant: "default" }),
                 "min-h-11 w-full gap-1.5",
