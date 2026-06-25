@@ -176,7 +176,18 @@
     "submit": "Create order",
     "submitting": "Creating…",
     "empty": "Add at least one service or a package",
-    "queuedNote": "This box is busy — the order will be queued."
+    "queuedNote": "This box is busy — the order will be queued.",
+    "plateFirstHint": "Enter the plate — we recognize returning customers",
+    "searching": "Searching…",
+    "matchingVehicles": "Matching vehicles",
+    "returningCustomer": "Returning customer",
+    "newVehicle": "New vehicle — walk-in unless you add a client",
+    "changeVehicle": "Change",
+    "addClient": "Add client",
+    "noLinkedClient": "No linked client",
+    "customer": "Customer",
+    "boxFromBoard": "Selected from the board",
+    "changeBox": "Change"
   },
   "orders": {
     "title": "Orders",
