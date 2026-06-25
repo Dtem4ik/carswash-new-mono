@@ -42,6 +42,9 @@ class CarOut(BaseModel):
     car_type_id: uuid.UUID
     brand: str | None
     model: str | None
+    # Clients linked to this car (usually one), so intake can autofill from a
+    # plate without a second round-trip. Empty for an unlinked / walk-in car.
+    clients: list[ClientOut] = []
 
 
 class StaffOut(BaseModel):
@@ -75,12 +78,33 @@ async def search_clients(
     return list((await session.execute(stmt)).scalars())
 
 
+async def _clients_by_car(
+    session: AsyncSession, car_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, list[ClientOut]]:
+    if not car_ids:
+        return {}
+    rows = (
+        await session.execute(
+            select(ClientCar.car_id, Client)
+            .join(Client, Client.id == ClientCar.client_id)
+            .where(ClientCar.car_id.in_(car_ids))
+            .order_by(Client.name)
+        )
+    ).all()
+    grouped: dict[uuid.UUID, list[ClientOut]] = {}
+    for car_id, client in rows:
+        grouped.setdefault(car_id, []).append(
+            ClientOut.model_validate(client, from_attributes=True)
+        )
+    return grouped
+
+
 @router.get("/cars", response_model=list[CarOut])
 async def search_cars(
     plate: str = Query(min_length=1),
     ctx: TenantContext = Depends(get_tenant_context),
     session: AsyncSession = Depends(get_session),
-) -> list[Car]:
+) -> list[CarOut]:
     normalized = _normalize_plate(plate)
     plate_norm = func.upper(func.regexp_replace(Car.plate, r"\s", "", "g"))
     stmt = (
@@ -92,7 +116,19 @@ async def search_cars(
         .order_by(Car.plate)
         .limit(_LIMIT)
     )
-    return list((await session.execute(stmt)).scalars())
+    cars = list((await session.execute(stmt)).scalars())
+    clients_by_car = await _clients_by_car(session, [c.id for c in cars])
+    return [
+        CarOut(
+            id=c.id,
+            plate=c.plate,
+            car_type_id=c.car_type_id,
+            brand=c.brand,
+            model=c.model,
+            clients=clients_by_car.get(c.id, []),
+        )
+        for c in cars
+    ]
 
 
 @router.get("/staff", response_model=list[StaffOut])
