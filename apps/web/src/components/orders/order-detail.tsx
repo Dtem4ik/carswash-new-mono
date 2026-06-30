@@ -73,25 +73,16 @@ export function OrderDetail({ orderId }: { orderId: string }) {
   }, [staff.data]);
 
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [actionErrorCode, setActionErrorCode] = useState<string | null>(null);
 
-  async function runClose() {
-    setActionErrorCode(null);
-    try {
-      await closeOrder.mutateAsync(orderId);
-    } catch (error) {
-      setActionErrorCode(extractErrorCode(error) ?? "unknown");
-    }
+  // Failures surface through the global error modal (Error-UX standard); the
+  // optimistic cache rolls back on its own. Close the confirm dialog so the
+  // modal is visible underneath it.
+  function runClose() {
+    closeOrder.mutate(orderId);
   }
-  async function runCancel() {
-    setActionErrorCode(null);
-    try {
-      await cancelOrder.mutateAsync(orderId);
-      setCancelOpen(false);
-    } catch (error) {
-      setActionErrorCode(extractErrorCode(error) ?? "unknown");
-      setCancelOpen(false);
-    }
+  function runCancel() {
+    setCancelOpen(false);
+    cancelOrder.mutate(orderId);
   }
 
   const backLink = (
@@ -392,14 +383,6 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                   </Button>
                 ) : null}
               </div>
-              {actionErrorCode ? (
-                <p className="text-destructive text-sm" role="alert">
-                  {resolveErrorMessage(
-                    toErrorTranslator(tErrors),
-                    actionErrorCode,
-                  )}
-                </p>
-              ) : null}
             </Card>
           ) : null}
         </div>

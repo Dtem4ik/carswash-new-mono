@@ -25,11 +25,6 @@ import {
   useOpenShift,
   useRecordCashMovement,
 } from "@/hooks/use-shift";
-import {
-  extractErrorCode,
-  resolveErrorMessage,
-  toErrorTranslator,
-} from "@/lib/errors";
 import { useFormatters } from "@/lib/format";
 import { useTenant } from "@/lib/tenant-context";
 
@@ -69,48 +64,45 @@ export function ShiftControl() {
   const [cashType, setCashType] = useState<CashMovementType>("expense");
   const [cashAmount, setCashAmount] = useState("");
   const [cashReason, setCashReason] = useState("");
-  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [reconciliation, setReconciliation] = useState<ShiftCloseOut | null>(
     null,
   );
 
-  async function doOpen() {
-    setErrorCode(null);
-    try {
-      await openShift.mutateAsync({
-        opening_float_minor: toMinor(openingFloat),
-      });
-      setOpeningFloat("");
-    } catch (error) {
-      setErrorCode(extractErrorCode(error) ?? "unknown");
-    }
+  // Failures surface through the global error modal (Error-UX standard); only
+  // the success side effects (clearing inputs, showing the reconciliation) live
+  // here, as per-call onSuccess callbacks.
+  function doOpen() {
+    openShift.mutate(
+      { opening_float_minor: toMinor(openingFloat) },
+      { onSuccess: () => setOpeningFloat("") },
+    );
   }
-  async function doCash() {
-    setErrorCode(null);
+  function doCash() {
     if (toMinor(cashAmount) <= 0) return;
-    try {
-      await cashMovement.mutateAsync({
+    cashMovement.mutate(
+      {
         type: cashType,
         amount_minor: toMinor(cashAmount),
         reason: cashReason.trim() || null,
-      });
-      setCashAmount("");
-      setCashReason("");
-    } catch (error) {
-      setErrorCode(extractErrorCode(error) ?? "unknown");
-    }
+      },
+      {
+        onSuccess: () => {
+          setCashAmount("");
+          setCashReason("");
+        },
+      },
+    );
   }
-  async function doClose() {
-    setErrorCode(null);
-    try {
-      const result = await closeShift.mutateAsync({
-        counted_cash_minor: toMinor(countedCash),
-      });
-      setReconciliation(result);
-      setCountedCash("");
-    } catch (error) {
-      setErrorCode(extractErrorCode(error) ?? "unknown");
-    }
+  function doClose() {
+    closeShift.mutate(
+      { counted_cash_minor: toMinor(countedCash) },
+      {
+        onSuccess: (result) => {
+          setReconciliation(result);
+          setCountedCash("");
+        },
+      },
+    );
   }
 
   if (!activeCarWash) {
@@ -121,11 +113,6 @@ export function ShiftControl() {
   }
 
   const open = shift.data ?? null;
-  const errorBanner = errorCode ? (
-    <p className="text-destructive text-sm" role="alert">
-      {resolveErrorMessage(toErrorTranslator(tErrors), errorCode)}
-    </p>
-  ) : null;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -269,7 +256,6 @@ export function ShiftControl() {
                   {closeShift.isPending ? t("closing") : t("close")}
                 </Button>
               </div>
-              {errorBanner}
             </Card>
           ) : null}
 
@@ -278,7 +264,6 @@ export function ShiftControl() {
               <p className="text-muted-foreground text-sm">{t("readOnly")}</p>
             </Card>
           ) : null}
-          {canCash && !canManage ? errorBanner : null}
         </>
       ) : (
         <Card className="gap-4 p-5 lg:col-span-2">
@@ -310,7 +295,6 @@ export function ShiftControl() {
               >
                 {openShift.isPending ? t("opening") : t("open")}
               </Button>
-              {errorBanner}
             </div>
           ) : (
             <p className="text-muted-foreground text-sm">{t("readOnly")}</p>
