@@ -120,6 +120,7 @@ export function useCarTypeMutations(carWashId: string | null) {
   const client = useApiClient(carWashId);
   const invalidate = useCatalogInvalidation(carWashId);
   const create = useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (body: CarTypeCreate) => {
       const { data, error } = await client.POST("/car-types", { body });
       if (error) throw error;
@@ -128,6 +129,7 @@ export function useCarTypeMutations(carWashId: string | null) {
     onSuccess: invalidate,
   });
   const update = useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (vars: { id: string; body: CarTypeUpdate }) => {
       const { data, error } = await client.PATCH("/car-types/{car_type_id}", {
         params: { path: { car_type_id: vars.id } },
@@ -165,6 +167,7 @@ export function useServiceMutations(carWashId: string | null) {
   const client = useApiClient(carWashId);
   const invalidate = useCatalogInvalidation(carWashId);
   const create = useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (body: ServiceCreate) => {
       const { data, error } = await client.POST("/services", { body });
       if (error) throw error;
@@ -173,6 +176,7 @@ export function useServiceMutations(carWashId: string | null) {
     onSuccess: invalidate,
   });
   const update = useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (vars: { id: string; body: ServiceUpdate }) => {
       const { data, error } = await client.PATCH("/services/{service_id}", {
         params: { path: { service_id: vars.id } },
@@ -210,6 +214,7 @@ export function usePackageMutations(carWashId: string | null) {
   const client = useApiClient(carWashId);
   const invalidate = useCatalogInvalidation(carWashId);
   const create = useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (body: PackageCreate) => {
       const { data, error } = await client.POST("/packages", { body });
       if (error) throw error;
@@ -218,6 +223,7 @@ export function usePackageMutations(carWashId: string | null) {
     onSuccess: invalidate,
   });
   const update = useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (vars: { id: string; body: PackageUpdate }) => {
       const { data, error } = await client.PATCH("/packages/{package_id}", {
         params: { path: { package_id: vars.id } },
@@ -229,6 +235,7 @@ export function usePackageMutations(carWashId: string | null) {
     onSuccess: invalidate,
   });
   const setServices = useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (vars: { id: string; serviceIds: string[] }) => {
       const { data, error } = await client.PUT(
         "/packages/{package_id}/services",
@@ -269,6 +276,7 @@ export function useBoxMutations(carWashId: string | null) {
   const client = useApiClient(carWashId);
   const invalidate = useCatalogInvalidation(carWashId);
   const create = useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (body: BoxCreate) => {
       const { data, error } = await client.POST("/boxes", { body });
       if (error) throw error;
@@ -277,6 +285,7 @@ export function useBoxMutations(carWashId: string | null) {
     onSuccess: invalidate,
   });
   const update = useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (vars: { id: string; body: BoxUpdate }) => {
       const { data, error } = await client.PATCH("/boxes/{box_id}", {
         params: { path: { box_id: vars.id } },
@@ -314,6 +323,7 @@ export function useServicePriceUpsert(carWashId: string | null) {
   const client = useApiClient(carWashId);
   const queryClient = useQueryClient();
   return useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (body: ServicePriceUpsert): Promise<ServicePrice> => {
       const { data, error } = await client.PUT("/service-prices", { body });
       if (error) throw error;
@@ -331,6 +341,7 @@ export function usePackagePriceUpsert(carWashId: string | null) {
   const client = useApiClient(carWashId);
   const queryClient = useQueryClient();
   return useMutation({
+    meta: { errorMode: "inline" },
     mutationFn: async (body: PackagePriceUpsert): Promise<PackagePrice> => {
       const { data, error } = await client.PUT("/package-prices", { body });
       if (error) throw error;
