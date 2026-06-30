@@ -17,6 +17,22 @@ export interface ActionError {
   code: string | null;
 }
 
+/** A one-tap recovery the error modal can offer for a given code. */
+export interface ErrorNavAction {
+  href: string;
+  /** Key under the `errors.dialog.actions` message namespace. */
+  labelKey: string;
+}
+
+const NAV_ACTIONS: Record<string, ErrorNavAction> = {
+  "shift.not_open": { href: "/shift", labelKey: "openShift" },
+};
+
+/** The recovery action for a code, if one exists (e.g. shift.not_open → /shift). */
+export function navActionFor(code: string | null): ErrorNavAction | null {
+  return code ? (NAV_ACTIONS[code] ?? null) : null;
+}
+
 let current: ActionError | null = null;
 const listeners = new Set<(error: ActionError | null) => void>();
 

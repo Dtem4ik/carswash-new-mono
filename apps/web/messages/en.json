@@ -320,7 +320,8 @@
       "packages": "Packages",
       "carTypes": "Car types",
       "prices": "Prices",
-      "boxes": "Boxes"
+      "boxes": "Boxes",
+      "staff": "Staff"
     },
     "services": {
       "title": "Services",
@@ -376,6 +377,35 @@
       "cellAmount": "Amount in {currency}",
       "saved": "Saved",
       "saveError": "Save failed"
+    },
+    "staff": {
+      "title": "Staff & roles",
+      "description": "Invite teammates, set their role, and manage access.",
+      "addCta": "Add member",
+      "addTitle": "Add a member",
+      "addHint": "Invite someone by email and choose their role.",
+      "editTitle": "Change role",
+      "editHint": "Update this member's role and car wash.",
+      "email": "Email",
+      "emailPlaceholder": "name@example.com",
+      "role": "Role",
+      "carWash": "Car wash",
+      "selectCarWash": "Select a car wash",
+      "orgLevel": "Whole organization",
+      "name": "Name",
+      "inviteCta": "Send invite",
+      "inviteSentTitle": "Member added",
+      "tempPasswordNote": "Share this one-time password with {email}. They sign in with it and can change it afterwards.",
+      "tempPasswordWarning": "This password is shown once — copy it now.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "done": "Done",
+      "attachedNote": "{email} already had an account and has been added to the team.",
+      "empty": "No staff yet",
+      "emptyHint": "Add your first teammate to get started.",
+      "removeTitle": "Remove member",
+      "removeConfirm": "Remove {name} from the team? Their account is kept; only their access here is removed.",
+      "removeCta": "Remove"
     }
   },
   "errors": {
