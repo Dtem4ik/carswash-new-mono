@@ -230,6 +230,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Members */
+        get: operations["list_members_members_get"];
+        put?: never;
+        /** Invite Member */
+        post: operations["invite_member_members_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{membership_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Member */
+        delete: operations["remove_member_members__membership_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Member */
+        patch: operations["update_member_members__membership_id__patch"];
+        trace?: never;
+    };
     "/orders": {
         parameters: {
             query?: never;
@@ -825,6 +861,48 @@ export interface components {
             organization: components["schemas"]["OrganizationOut"];
             role: components["schemas"]["MembershipRole"];
             user: components["schemas"]["ProfileOut"];
+        };
+        /** MemberInvite */
+        MemberInvite: {
+            /** Car Wash Id */
+            car_wash_id?: string | null;
+            /** Email */
+            email: string;
+            role: components["schemas"]["MembershipRole"];
+        };
+        /** MemberInviteOut */
+        MemberInviteOut: {
+            member: components["schemas"]["MemberOut"];
+            /** Temporary Password */
+            temporary_password: string | null;
+        };
+        /** MemberOut */
+        MemberOut: {
+            /** Car Wash Id */
+            car_wash_id: string | null;
+            /** Car Wash Name */
+            car_wash_name: string | null;
+            /** Email */
+            email: string | null;
+            /** Full Name */
+            full_name: string | null;
+            /**
+             * Membership Id
+             * Format: uuid
+             */
+            membership_id: string;
+            role: components["schemas"]["MembershipRole"];
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** MemberRoleUpdate */
+        MemberRoleUpdate: {
+            /** Car Wash Id */
+            car_wash_id?: string | null;
+            role: components["schemas"]["MembershipRole"];
         };
         /**
          * MembershipRole
@@ -1853,6 +1931,140 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_members_members_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    invite_member_members_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberInvite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberInviteOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_member_members__membership_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                membership_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_member_members__membership_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Car-Wash-Id"?: string | null;
+            };
+            path: {
+                membership_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberRoleUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberOut"];
                 };
             };
             /** @description Validation Error */
