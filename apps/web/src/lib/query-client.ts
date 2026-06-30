@@ -1,5 +1,5 @@
 import { MutationCache, QueryClient } from "@tanstack/react-query";
-import { toast } from "@/lib/toast";
+import { reportActionError } from "@/lib/action-error";
 
 /**
  * Context an optimistic order mutation stashes from `onMutate`. The reconcile /
@@ -14,12 +14,6 @@ export interface OptimisticContext {
   rollback: () => void;
   /** Fold the authoritative server response into the cache. */
   reconcile: (data: unknown) => void;
-  /**
-   * Build the localized failure toast from the error, in React scope where the
-   * i18n translator is available. Omit to stay silent (an inline UI on a still
-   * mounted surface shows the error itself).
-   */
-  describeError?: (error: unknown) => string;
 }
 
 function asOptimistic(context: unknown): OptimisticContext | null {
@@ -33,6 +27,11 @@ function asOptimistic(context: unknown): OptimisticContext | null {
  * One QueryClient per app session. Mutation reconciliation lives on the
  * mutation cache (not per-hook) so optimistic create/close/cancel/payment
  * settle correctly regardless of which component is still mounted.
+ *
+ * Every mutation failure is surfaced to the user (Error-UX standard, docs/UI.md):
+ * by default it rolls back any optimistic change and opens the blocking error
+ * modal. A mutation that owns its own inline error UI (a form dialog) opts out
+ * with `meta: { errorMode: "inline" }`.
  */
 export function createQueryClient(): QueryClient {
   return new QueryClient({
@@ -43,10 +42,10 @@ export function createQueryClient(): QueryClient {
       onSuccess: (data, _vars, context) => {
         asOptimistic(context)?.reconcile(data);
       },
-      onError: (error, _vars, context) => {
-        const ctx = asOptimistic(context);
-        ctx?.rollback();
-        if (ctx?.describeError) toast(ctx.describeError(error), "destructive");
+      onError: (error, _vars, context, mutation) => {
+        asOptimistic(context)?.rollback();
+        if (mutation.meta?.errorMode === "inline") return;
+        reportActionError(error);
       },
     }),
   });
