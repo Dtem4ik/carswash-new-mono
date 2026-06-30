@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import boxes, catalog, lookup, me, orders, pricing, shifts
+from app.api import boxes, catalog, lookup, me, members, orders, pricing, shifts
 from app.config import settings
 from app.deps import dispose_engine, init_engine
 
@@ -47,6 +47,7 @@ app.include_router(boxes.router)
 app.include_router(lookup.router)
 app.include_router(shifts.router)
 app.include_router(orders.router)
+app.include_router(members.router)
 
 
 @app.get("/health")

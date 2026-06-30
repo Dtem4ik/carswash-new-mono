@@ -50,8 +50,12 @@ def test_washer_is_read_only_operationally() -> None:
     assert not can(MembershipRole.washer, Capability.ORDERS_CREATE)
     assert can(MembershipRole.manager, Capability.ORDERS_CREATE)
     assert not can(MembershipRole.washer, Capability.USERS_MANAGE)
-    assert not can(MembershipRole.manager, Capability.USERS_MANAGE)
+    # A manager may manage staff (washers at their own car wash; the members
+    # endpoints enforce that narrowing), but never car washes themselves.
+    assert can(MembershipRole.manager, Capability.USERS_MANAGE)
+    assert not can(MembershipRole.manager, Capability.CAR_WASH_MANAGE)
     assert can(MembershipRole.org_admin, Capability.USERS_MANAGE)
+    assert can(MembershipRole.org_admin, Capability.CAR_WASH_MANAGE)
 
 
 # --- JWT verification (no DB needed for these) --------------------------------
