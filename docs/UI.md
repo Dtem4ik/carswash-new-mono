@@ -159,6 +159,32 @@ primitives.
 A **free bay is not an empty state** — it is an inviting affordance (soft dashed
 panel) with a capability-gated primary call to action.
 
+## Error UX — failed actions
+
+A read that fails shows its **inline** error state (above). An **action** that
+fails — a create/close/cancel/payment, a shift open/close, a cash movement, an
+admin write — must always surface a clear, **localized** reason. A failure is
+**never** console-only and never a silent no-op.
+
+- **Blocking modal is the default.** Any mutation rejection rolls back its
+  optimistic cache change and opens the app-wide error modal
+  (`src/components/ui/error-dialog.tsx`, mounted once in `Providers`, fed by the
+  `action-error` store). This is wired centrally in the TanStack **mutation
+  cache** (`src/lib/query-client.ts`), so even an action whose originating screen
+  has navigated away (intake → board) still reports.
+- **Localized codes.** The modal maps the backend's stable `{ "code": … }` via
+  the `errors` message namespace (`src/lib/errors.ts`). An **unknown** code falls
+  back to a generic localized message plus the raw code shown for support.
+- **Offer the next step.** Where a failure has an obvious recovery, the modal
+  shows an action button — e.g. `shift.not_open` → **Open a shift** (→ `/shift`).
+  Capability/forbidden errors explain; validation errors point to the field.
+- **Inline opt-out for forms.** A form dialog that already shows the error next
+  to its fields (create/edit entity, record payment, add member, price cell)
+  opts out of the modal with `meta: { errorMode: "inline" }` on its mutation and
+  renders the same localized message inline.
+- **Toasts are for minor, transient info only** — never the sole signal that an
+  action failed.
+
 ## Money / time / i18n
 
 - **Money:** Geist Mono, `Intl.NumberFormat` with the **active car wash's**

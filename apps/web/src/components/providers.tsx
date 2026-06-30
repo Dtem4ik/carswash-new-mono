@@ -3,6 +3,7 @@
 import type { MeResponse } from "@carswash/shared";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
+import { ErrorDialog } from "@/components/ui/error-dialog";
 import { Toaster } from "@/components/ui/toaster";
 import { createQueryClient } from "@/lib/query-client";
 import { TenantProvider } from "@/lib/tenant-context";
@@ -25,6 +26,7 @@ export function Providers({
         {children}
       </TenantProvider>
       <Toaster />
+      <ErrorDialog />
     </QueryClientProvider>
   );
 }

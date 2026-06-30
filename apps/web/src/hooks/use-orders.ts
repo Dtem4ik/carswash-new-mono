@@ -2,13 +2,7 @@
 
 import type { components } from "@carswash/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useApiClient } from "@/lib/api-client";
-import {
-  extractErrorCode,
-  resolveErrorMessage,
-  toErrorTranslator,
-} from "@/lib/errors";
 import {
   applyActiveOrder,
   buildOptimisticOrder,
@@ -101,7 +95,6 @@ export interface CreateOrderVars {
 export function useCreateOrder(carWashId: string | null) {
   const client = useApiClient(carWashId);
   const queryClient = useQueryClient();
-  const tErrors = useTranslations("errors");
 
   return useMutation<OrderDetail, unknown, CreateOrderVars, OptimisticContext>({
     mutationFn: async ({ body }): Promise<OrderDetail> => {
@@ -133,11 +126,6 @@ export function useCreateOrder(carWashId: string | null) {
       }
 
       return {
-        describeError: (error) =>
-          resolveErrorMessage(
-            toErrorTranslator(tErrors),
-            extractErrorCode(error) ?? "unknown",
-          ),
         rollback: () => {
           queryClient.setQueryData(ordersKey, prevOrders);
           queryClient.setQueryData(bKey, prevBoxes);
@@ -254,6 +242,8 @@ export function useRecordPayment(carWashId: string | null) {
     { orderId: string; body: PaymentCreate },
     OptimisticContext
   >({
+    // The payment dialog stays mounted and shows the error inline.
+    meta: { errorMode: "inline" },
     mutationFn: async (vars): Promise<PaymentOut> => {
       const { data, error } = await client.POST("/orders/{order_id}/payments", {
         params: { path: { order_id: vars.orderId } },

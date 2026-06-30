@@ -411,6 +411,24 @@
     },
     "pricing": {
       "missing": "No price is configured for this service and car type"
+    },
+    "dialog": {
+      "title": "Action failed",
+      "close": "Close",
+      "codeLabel": "Code: {code}",
+      "actions": {
+        "openShift": "Open a shift"
+      }
+    },
+    "members": {
+      "email_invalid": "Enter a valid email address",
+      "already_member": "This person is already on the team",
+      "forbidden_role": "You can't assign this role",
+      "forbidden_scope": "You can't manage staff for this car wash",
+      "car_wash_required": "Choose a car wash for this role",
+      "not_found": "Member not found",
+      "cannot_remove_self": "You can't remove your own membership",
+      "admin_unavailable": "Staff management is temporarily unavailable"
     }
   }
 }
