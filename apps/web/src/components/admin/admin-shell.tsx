@@ -16,6 +16,8 @@ const TABS = [
   { key: "carTypes", href: "/admin/car-types" },
   { key: "prices", href: "/admin/prices" },
   { key: "boxes", href: "/admin/boxes" },
+  // Staff management is gated separately — only roles that can manage users.
+  { key: "staff", href: "/admin/staff", capability: "users.manage" },
 ] as const;
 
 /**
@@ -57,7 +59,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
         aria-label={t("title")}
         className="bg-muted text-muted-foreground inline-flex max-w-full gap-1 overflow-x-auto rounded-lg p-[3px]"
       >
-        {TABS.map((tab) => {
+        {TABS.filter(
+          (tab) => !("capability" in tab) || hasCapability(tab.capability),
+        ).map((tab) => {
           const active = pathname.startsWith(tab.href);
           return (
             <Link

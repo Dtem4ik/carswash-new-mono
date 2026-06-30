@@ -16,6 +16,7 @@ import {
 import {
   dismissActionError,
   getActionError,
+  navActionFor,
   subscribeActionError,
 } from "@/lib/action-error";
 import { resolveErrorMessage, toErrorTranslator } from "@/lib/errors";
@@ -27,11 +28,6 @@ import { resolveErrorMessage, toErrorTranslator } from "@/lib/errors";
  * `shift.not_open` → "Open a shift" → /shift. Unknown codes fall back to a
  * generic message plus the raw code for support. Mounted once in Providers.
  */
-
-/** Codes whose recovery is a single navigation; the dialog offers a button. */
-const NAV_ACTIONS: Record<string, { href: string; labelKey: string }> = {
-  "shift.not_open": { href: "/shift", labelKey: "openShift" },
-};
 
 export function ErrorDialog() {
   const error = useSyncExternalStore(
@@ -48,7 +44,7 @@ export function ErrorDialog() {
   const code = error?.code ?? null;
   const known = code != null && tErrors.has(code);
   const message = resolveErrorMessage(toErrorTranslator(tErrors), code);
-  const action = code != null ? NAV_ACTIONS[code] : undefined;
+  const action = navActionFor(code);
 
   function close() {
     dismissActionError();
