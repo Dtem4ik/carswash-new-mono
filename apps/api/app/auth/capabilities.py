@@ -39,6 +39,8 @@ class Capability:
 _WASHER: frozenset[str] = frozenset({Capability.ORDERS_VIEW})
 
 # A manager runs a location end to end: orders, payments, pricing, shifts, cash.
+# They also manage staff, but only washers at their own car wash — the members
+# endpoints enforce that narrowing; the capability merely opens the door.
 _MANAGER: frozenset[str] = _WASHER | frozenset(
     {
         Capability.ORDERS_CREATE,
@@ -57,13 +59,13 @@ _MANAGER: frozenset[str] = _WASHER | frozenset(
         Capability.CASH_RECORD,
         Capability.CLIENTS_MANAGE,
         Capability.REPORTS_VIEW,
+        Capability.USERS_MANAGE,
     }
 )
 
-# Org admins additionally manage memberships and car washes across the org.
-_ORG_ADMIN: frozenset[str] = _MANAGER | frozenset(
-    {Capability.USERS_MANAGE, Capability.CAR_WASH_MANAGE}
-)
+# Org admins additionally manage car washes across the org (and staff org-wide,
+# without the manager's washer-only / single-location restriction).
+_ORG_ADMIN: frozenset[str] = _MANAGER | frozenset({Capability.CAR_WASH_MANAGE})
 
 # Owner has the full set (org admin + everything reserved for ownership today).
 _OWNER: frozenset[str] = _ORG_ADMIN
